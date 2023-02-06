@@ -1,37 +1,31 @@
 import 'package:flutter/material.dart';
+import './navigation.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Pet Feeder 9000',
-      themeMode: ThemeMode.dark,
-      // darkTheme: ThemeData.dark(),
-      home: RootPage(),
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-class RootPage extends StatefulWidget {
-  const RootPage({super.key});
-
-  @override
-  State<RootPage> createState() => _RootPageState();
-}
-
-class _RootPageState extends State<RootPage> {
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Pet Feeder 9000")),
+    return MaterialApp(
+      theme: ThemeData(
+        fontFamily: 'Poppins',
+        //   textTheme: const TextTheme(
+        //       displayLarge:
+        //           TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+        //       titleLarge: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+        //       regular: TextStyle(fontSize: 10, fontStyle: FontStyle.normal)
+        //       // regularSize: TextStyle(fontSize: 16)),
+      ),
+      home: const Scaffold(
+        bottomNavigationBar: Navigation(),
+      ),
     );
   }
 }
