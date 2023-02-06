@@ -9,8 +9,9 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
-  // int _selectedIndex = 0;
   late TabController controller;
+  var activeColor = const Color.fromARGB(255, 33, 31, 103);
+  var inactiveColor = const Color.fromARGB(255, 204, 204, 204);
 
   @override
   void initState() {
@@ -22,21 +23,14 @@ class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return TabBar(
       controller: controller,
-      // unselectedLabelColor: Colors.grey,
-      // labelColor: Colors.blue,
-      labelColor: const Color.fromARGB(255, 33, 31, 103),
-      unselectedLabelColor: const Color.fromARGB(255, 204, 204, 204),
-
-      // indicatorPadding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-      // indicator: BoxDecoration(
-      //   border: Border.all(color: Colors.red),
-      //   borderRadius: BorderRadius.circular(10),
-      //   color: Colors.pinkAccent,
-      // ),
-      // indicatorWeight: 12,
+      labelColor: activeColor,
+      unselectedLabelColor: inactiveColor,
+      splashFactory: NoSplash.splashFactory,
+      labelStyle: const TextStyle(
+          fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
       // This runs a custom indicator design
-      indicator: const CustomTabIndicator(),
-      labelPadding: const EdgeInsets.fromLTRB(0, 0, 0, 6),
+      indicator: const CustomTabIndicator(radius: 8, indicatorHeight: 8),
+      labelPadding: const EdgeInsets.only(bottom: 6),
       onTap: (index) {},
       tabs: const [
         Tab(icon: Icon(Icons.home_filled), text: 'Homepage'),
@@ -45,37 +39,6 @@ class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
       ],
     );
   }
-  /*
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      items: const <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_filled),
-          label: 'Homepage',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.camera),
-          label: 'Camera',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: 'Settings',
-        ),
-      ],
-      currentIndex: _selectedIndex,
-      selectedItemColor: const Color.fromARGB(255, 33, 31, 103),
-      unselectedItemColor: const Color.fromARGB(255, 204, 204, 204),
-      onTap: _onItemTapped,
-    );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-  */
 }
 
 class CustomTabIndicator extends Decoration {
@@ -86,9 +49,9 @@ class CustomTabIndicator extends Decoration {
   final double indicatorHeight;
 
   const CustomTabIndicator({
-    this.radius = 8,
-    this.indicatorHeight = 8,
-    this.color = Colors.blue,
+    required this.radius,
+    required this.indicatorHeight,
+    this.color = const Color.fromARGB(255, 33, 31, 103),
   });
 
   @override
