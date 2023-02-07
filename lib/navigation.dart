@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
+// late TabController controller;
+
 class Navigation extends StatefulWidget {
-  // const Navigation({super.key});
   const Navigation({Key? key}) : super(key: key);
 
   @override
@@ -9,29 +10,27 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
-  late TabController controller;
   var activeColor = const Color.fromARGB(255, 33, 31, 103);
   var inactiveColor = const Color.fromARGB(255, 204, 204, 204);
 
-  @override
-  void initState() {
-    controller = TabController(length: 3, vsync: this);
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   controller = TabController(length: 3, vsync: this);
+  //   super.initState();
+  // }
 
   @override
   Widget build(BuildContext context) {
     return TabBar(
-      controller: controller,
+      // controller: controller,
       labelColor: activeColor,
       unselectedLabelColor: inactiveColor,
       splashFactory: NoSplash.splashFactory,
       labelStyle: const TextStyle(
           fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
       // This runs a custom indicator design
-      indicator: const CustomTabIndicator(radius: 8, indicatorHeight: 8),
+      indicator: const CustomTabIndicator(radius: 10, indicatorHeight: 10),
       labelPadding: const EdgeInsets.only(bottom: 6),
-      onTap: (index) {},
       tabs: const [
         Tab(icon: Icon(Icons.home_filled), text: 'Homepage'),
         Tab(icon: Icon(Icons.camera), text: 'Camera'),
@@ -94,7 +93,7 @@ class _CustomPainter extends BoxPainter {
     RRect fullRect = RRect.fromRectAndCorners(
       Rect.fromCenter(
         center: Offset(xAxisPos, yAxisPos),
-        width: configuration.size!.width / 1.3,
+        width: configuration.size!.width / 1.5,
         height: indicatorHeight,
       ),
       topLeft: Radius.circular(radius),
