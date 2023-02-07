@@ -13,12 +13,6 @@ class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
   var activeColor = const Color.fromARGB(255, 33, 31, 103);
   var inactiveColor = const Color.fromARGB(255, 204, 204, 204);
 
-  // @override
-  // void initState() {
-  //   controller = TabController(length: 3, vsync: this);
-  //   super.initState();
-  // }
-
   @override
   Widget build(BuildContext context) {
     return TabBar(
