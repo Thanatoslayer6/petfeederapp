@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-// late TabController controller;
-
 class Navigation extends StatefulWidget {
   const Navigation({Key? key}) : super(key: key);
 
@@ -16,7 +14,7 @@ class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return TabBar(
-      // controller: controller,
+      controller: DefaultTabController.of(context),
       labelColor: activeColor,
       unselectedLabelColor: inactiveColor,
       splashFactory: NoSplash.splashFactory,

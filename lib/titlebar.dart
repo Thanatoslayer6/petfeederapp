@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'main.dart';
+import 'adaptive.dart';
+// import 'time.dart';
 
 class TitleBar extends StatelessWidget implements PreferredSizeWidget {
   const TitleBar({super.key});
@@ -15,12 +18,12 @@ class TitleBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               margin: const EdgeInsets.only(top: 18),
               alignment: Alignment.centerLeft,
-              child: const Text(
+              child: Text(
                 "CleverFeeder",
                 style: TextStyle(
-                    color: Color.fromARGB(255, 33, 31, 103),
+                    color: const Color.fromARGB(255, 33, 31, 103),
                     fontFamily: 'Poppins',
-                    fontSize: 20,
+                    fontSize: getadaptiveTextSize(context, 20),
                     fontWeight: FontWeight.bold),
               ),
             ),
@@ -40,18 +43,20 @@ class TitleBar extends StatelessWidget implements PreferredSizeWidget {
 
 class ClockWidget extends StatelessWidget {
   const ClockWidget({super.key});
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: Stream.periodic(const Duration(seconds: 1)),
+      // stream: Stream.periodic(const Duration(seconds: 1)),
+      stream: DateTimeService.stream,
       builder: (context, snapshot) {
         return Text(
-            DateFormat('EEE, MMM d yyyy - h:mm:ss a').format(DateTime.now()),
+            // DateFormat('EEE, MMM d yyyy - h:mm:ss a').format(DateTime.now()),
+            DateFormat('EEE, MMM d yyyy - h:mm:ss a')
+                .format(DateTimeService.timeNow),
             textAlign: TextAlign.left,
-            style: const TextStyle(
-                color: Color.fromARGB(255, 33, 31, 103),
-                fontSize: 14,
+            style: TextStyle(
+                color: const Color.fromARGB(255, 33, 31, 103),
+                fontSize: getadaptiveTextSize(context, 14),
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w400));
       },
