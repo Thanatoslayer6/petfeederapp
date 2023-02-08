@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:petfeederapp/camera.dart';
 import 'package:petfeederapp/settings.dart';
@@ -6,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'navigation.dart';
 import 'titlebar.dart';
 import 'homepage.dart';
+import 'time.dart';
 
 void main() {
   // Add these 2 lines to disable statusbar/topbar
@@ -47,20 +47,4 @@ class _MyAppState extends State<MyApp> {
           ),
         ));
   }
-}
-
-class DateTimeService {
-  // ignore: prefer_final_fields
-  static StreamController<DateTime> _streamController =
-      StreamController<DateTime>.broadcast();
-
-  static void init() {
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      _streamController.add(DateTime.now());
-    });
-  }
-
-  static Stream<DateTime> get stream => _streamController.stream;
-
-  static DateTime get timeNow => DateTime.now();
 }

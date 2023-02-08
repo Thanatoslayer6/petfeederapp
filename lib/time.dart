@@ -1,6 +1,5 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-// import 'dart:async';
-import 'main.dart';
 import 'adaptive.dart';
 
 // ignore: must_be_immutable
@@ -72,4 +71,20 @@ Duration calculateRemainingTime(DateTime futureTime) {
   } else {
     return remainingTime;
   }
+}
+
+class DateTimeService {
+  // ignore: prefer_final_fields
+  static StreamController<DateTime> _streamController =
+      StreamController<DateTime>.broadcast();
+
+  static void init() {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      _streamController.add(DateTime.now());
+    });
+  }
+
+  static Stream<DateTime> get stream => _streamController.stream;
+
+  static DateTime get timeNow => DateTime.now();
 }

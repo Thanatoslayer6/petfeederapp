@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'main.dart';
 import 'adaptive.dart';
-// import 'time.dart';
+import 'time.dart';
 
 class TitleBar extends StatelessWidget implements PreferredSizeWidget {
   const TitleBar({super.key});

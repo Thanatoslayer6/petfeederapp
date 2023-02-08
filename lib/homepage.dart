@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:petfeederapp/main.dart';
 import 'adaptive.dart';
 import 'time.dart';
+import 'schedule.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -15,15 +15,6 @@ class _HomepageState extends State<Homepage> {
   final automaticModeFontColor = const Color.fromARGB(255, 9, 104, 18);
   final manualModeFontColor = const Color.fromARGB(255, 129, 111, 5);
   bool isAutomaticMode = true;
-  int scheduleRotationIndex = 0;
-  // ignore: unused_local_variable
-
-  // Lists in dart have methods such as .add() and .remove()
-  // For instance, we set scheduled time to 5:30 AM
-  var scheduledTimes = [
-    DateTime(DateTimeService.timeNow.year, DateTimeService.timeNow.month,
-        DateTimeService.timeNow.day, 13, 30),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +66,8 @@ class _HomepageState extends State<Homepage> {
                     fit: BoxFit.contain,
                     child: Text(
                         DateFormat('h:mm a')
-                            .format(scheduledTimes[scheduleRotationIndex]),
+                            // .format(scheduledTimes[scheduleRotationIndex]),
+                            .format(Schedule.listOfTimes[0]),
                         style: TextStyle(
                             color: const Color.fromARGB(255, 33, 31, 103),
                             fontFamily: 'Poppins',
@@ -88,8 +80,10 @@ class _HomepageState extends State<Homepage> {
           alignment: Alignment.topRight,
           width: MediaQuery.of(context).size.width,
           child:
-              TimeCountdown(futureTime: scheduledTimes[scheduleRotationIndex]),
+              // TimeCountdown(futureTime: scheduledTimes[scheduleRotationIndex]),
+              TimeCountdown(futureTime: Schedule.listOfTimes[0]),
         ),
+        // BUTTONS BELOW
         Expanded(
           child:
               // ignore: avoid_unnecessary_containers
@@ -118,29 +112,12 @@ class _HomepageState extends State<Homepage> {
             padding: EdgeInsets.all(getadaptiveTextSize(context, 8)),
             width: MediaQuery.of(context).size.width,
             child: MaterialButton(
-                onPressed: () async {
-                  // Logic for setting schedule
-                  TimeOfDay? pickedTime = await showTimePicker(
-                    initialTime: TimeOfDay.now(),
-                    context: context,
-                  );
-                  // Increment to next schedule: TESTING
-                  // scheduleRotationIndex++;
-                  setState(() {
-                    scheduleRotationIndex++;
-                    if (pickedTime != null) {
-                      scheduledTimes.add(DateTime(
-                          DateTimeService.timeNow.year,
-                          DateTimeService.timeNow.month,
-                          DateTimeService.timeNow.day,
-                          pickedTime.hour,
-                          pickedTime.minute));
-                    }
-                  });
-                  // Outputs 24hour time
-                  // print(pickedTime);
-                  // print(scheduleRotationIndex);
-                  // print(scheduledTimes);
+                onPressed: () {
+                  // Create a new window for managing schedules
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SchedulePage()));
                 },
                 padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4),
                     0, getadaptiveTextSize(context, 4)),
@@ -260,12 +237,3 @@ class _HomepageState extends State<Homepage> {
     );
   }
 }
-
-
-
-
-// class Homepage extends StatelessWidget {
-//   const Homepage({super.key});
-
-  
-// }
