@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'adaptive.dart';
@@ -67,7 +69,7 @@ class _HomepageState extends State<Homepage> {
                     child: Text(
                         DateFormat('h:mm a')
                             // .format(scheduledTimes[scheduleRotationIndex]),
-                            .format(Schedule.listOfTimes[0]),
+                            .format(Schedule.listOfTimes[0].data),
                         style: TextStyle(
                             color: const Color.fromARGB(255, 33, 31, 103),
                             fontFamily: 'Poppins',
@@ -81,7 +83,7 @@ class _HomepageState extends State<Homepage> {
           width: MediaQuery.of(context).size.width,
           child:
               // TimeCountdown(futureTime: scheduledTimes[scheduleRotationIndex]),
-              TimeCountdown(futureTime: Schedule.listOfTimes[0]),
+              TimeCountdown(futureTime: Schedule.listOfTimes[0].data),
         ),
         // BUTTONS BELOW
         Expanded(
@@ -145,9 +147,11 @@ class _HomepageState extends State<Homepage> {
                     ),
                     Padding(
                         padding: const EdgeInsets.only(right: 16),
-                        child: IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.menu_rounded))),
+                        child: Icon(Icons.keyboard_arrow_right_rounded)),
+                    // child: IconButton(
+                    //     onPressed: () {},
+                    //     icon: const Icon(
+                    //         Icons.keyboard_arrow_right_rounded))),
                   ],
                 )),
           ),
@@ -184,9 +188,13 @@ class _HomepageState extends State<Homepage> {
                     ),
                     Padding(
                         padding: const EdgeInsets.only(right: 16),
-                        child: IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.menu_rounded))),
+                        child: Icon(Icons.keyboard_arrow_right_rounded)),
+                    // Padding(
+                    //     padding: const EdgeInsets.only(right: 16),
+                    //     child: IconButton(
+                    //         onPressed: () {},
+                    //         icon: const Icon(
+                    //             Icons.keyboard_arrow_right_rounded))),
                   ],
                 )),
           ),
@@ -225,11 +233,15 @@ class _HomepageState extends State<Homepage> {
                       ),
                     ),
                   ),
+                  // Padding(
+                  //     padding: const EdgeInsets.only(right: 16),
+                  //     child: IconButton(
+                  //       icon: const Icon(Icons.keyboard_arrow_right_rounded),
+                  //       onPressed: () {},
+                  //     )),
                   Padding(
                       padding: const EdgeInsets.only(right: 16),
-                      child: IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.menu_rounded))),
+                      child: Icon(Icons.keyboard_arrow_right_rounded)),
                 ],
               )),
         )),

@@ -33,12 +33,12 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-            highlightColor: Colors.transparent,
-            splashColor: Colors.transparent),
-        home: const DefaultTabController(
+        // theme: ThemeData(
+        //     highlightColor: Colors.transparent,
+        //     splashColor: Colors.transparent),
+        home: DefaultTabController(
           length: 3,
           child: Scaffold(
             appBar: TitleBar(),
