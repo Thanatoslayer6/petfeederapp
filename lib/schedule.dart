@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:weekday_selector/weekday_selector.dart';
 import 'time.dart';
 import 'adaptive.dart';
 import 'packages/multi_select_item.dart';
@@ -23,6 +24,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    List<bool> values = List.filled(7, false);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -63,88 +65,10 @@ class _SchedulePageState extends State<SchedulePage> {
         elevation: 0,
       ),
       body: ListView.builder(
-          itemCount: Schedule.listOfTimes.length,
-          itemBuilder: ((context, index) {
-            return MultiSelectItem(
-              isSelecting: scheduleController.isSelecting,
-              onSelected: () {
-                setState(() {
-                  scheduleController.toggle(index);
-                });
-              },
-              child: Material(
-                borderRadius: BorderRadius.circular(8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  // onLongPress: (() {}),
-                  // onHighlightChanged: ((value) {}),
-                  child: Container(
-                    margin: const EdgeInsets.all(4),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: scheduleController.isSelected(index) == true
-                          ? const Color.fromARGB(255, 101, 145, 211)
-                          : const Color.fromARGB(255, 243, 243, 243),
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.transparent,
-                          // spreadRadius: 2,
-                          // blurRadius: 7,
-                          offset: Offset(2, 2), // changes position of shadow
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // ignore: avoid_unnecessary_containers
-                          Container(
-                            // color: Colors.blue,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  DateFormat('h:mm')
-                                      .format(Schedule.listOfTimes[index].data),
-                                  style: TextStyle(
-                                      fontFamily: "Poppins",
-                                      fontSize:
-                                          getadaptiveTextSize(context, 48),
-                                      fontWeight: FontWeight.w500),
-                                ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 4, left: 6),
-                                  child: Text(
-                                    DateFormat('a').format(
-                                        Schedule.listOfTimes[index].data),
-                                    style: TextStyle(
-                                        fontFamily: "Poppins",
-                                        fontSize:
-                                            getadaptiveTextSize(context, 24),
-                                        fontWeight: FontWeight.normal),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-
-                          Switch(
-                              activeColor:
-                                  const Color.fromARGB(255, 33, 31, 103),
-                              value: Schedule.listOfTimes[index].isActive,
-                              onChanged: (value) {
-                                setState(() {
-                                  Schedule.listOfTimes[index].isActive = value;
-                                });
-                              })
-                        ]),
-                  ),
-                ),
-              ),
-            );
-          })),
+        itemCount: Schedule.listOfTimes.length,
+        itemBuilder: ((context, index) =>
+            scheduleItem(scheduleController, index)),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.alarm_add_rounded),
         label: const Text("Add Schedule"),
@@ -158,6 +82,21 @@ class _SchedulePageState extends State<SchedulePage> {
           if (pickedTime != null) {
             addItem(pickedTime);
             // TODO: After user picks a time, tell on what day... like everyday? every mon?
+            // Show dialog box
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return WeekdaySelector(
+                    onChanged: (int day) {
+                      setState(() {
+                        // Set all values to false except the "day"th element
+                        values = List.filled(7, false, growable: false)
+                          ..[day % 7] = true;
+                      });
+                    },
+                    values: values,
+                  );
+                });
           } else {
             // TODO: Decide what to do here...
             // ignore: avoid_print
@@ -194,179 +133,91 @@ class _SchedulePageState extends State<SchedulePage> {
       scheduleController.set(Schedule.listOfTimes.length);
     });
   }
-}
-/*
-// ignore: must_be_immutable
-class ScheduleItem extends StatefulWidget {
-  // int itemIndex;
-  ListItem<dynamic> time;
-  // MultiSelectController controller;
-  // final VoidCallback onDelete;
-  ScheduleItem({
-    super.key,
-    // required this.itemIndex,
-    required this.time,
-    // required this.onDelete,
-    // required this.controller
-  });
-  @override
-  State<ScheduleItem> createState() => _ScheduleItemState();
-}
 
-class _ScheduleItemState extends State<ScheduleItem> {
-  // bool isSelected = false;
-  @override
-  Widget build(BuildContext context) {
-    /*
-    return InkWell(
-      child: MultiSelectItem(
-        isSelecting: widget.controller.isSelecting,
-        onSelected: () {
-          setState(() {
-            widget.controller.toggle(widget.itemIndex);
-          });
-        },
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: widget.time.isSelected == true
-                ? const Color.fromARGB(255, 101, 145, 211)
-                : const Color.fromARGB(255, 243, 243, 243),
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 2,
-                blurRadius: 7,
-                offset: const Offset(2, 2), // changes position of shadow
-              ),
-            ],
-          ),
-          child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            // ignore: avoid_unnecessary_containers
-            Container(
-              // color: Colors.blue,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    DateFormat('h:mm').format(widget.time.data),
-                    style: TextStyle(
-                        fontFamily: "Poppins",
-                        fontSize: getadaptiveTextSize(context, 48),
-                        fontWeight: FontWeight.w500),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4, left: 6),
-                    child: Text(
-                      DateFormat('a').format(widget.time.data),
-                      style: TextStyle(
-                          fontFamily: "Poppins",
-                          fontSize: getadaptiveTextSize(context, 24),
-                          fontWeight: FontWeight.normal),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            widget.time.isSelected == true
-                ? IconButton(
-                    icon: const Icon(Icons.delete_forever_rounded),
-                    onPressed: widget.onDelete,
-                  )
-                : Switch(
-                    activeColor: const Color.fromARGB(255, 33, 31, 103),
-                    value: widget.time.isActive,
-                    onChanged: (value) {
-                      setState(() {
-                        widget.time.isActive = value;
-                      });
-                    })
-          ]),
-        ),
-      ),
-    );
-    */
+  Widget scheduleItem(var controller, var index) {
     return Container(
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: widget.time.isSelected == true
-            ? const Color.fromARGB(255, 101, 145, 211)
-            : const Color.fromARGB(255, 243, 243, 243),
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 7,
-            offset: const Offset(2, 2), // changes position of shadow
+            offset: const Offset(3, 4), // changes position of shadow
           ),
         ],
       ),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        // ignore: avoid_unnecessary_containers
-        Container(
-          // color: Colors.blue,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                DateFormat('h:mm').format(widget.time.data),
-                style: TextStyle(
-                    fontFamily: "Poppins",
-                    fontSize: getadaptiveTextSize(context, 48),
-                    fontWeight: FontWeight.w500),
+      margin: const EdgeInsets.all(8),
+      child: Material(
+        borderRadius: BorderRadius.circular(32),
+        color: controller.isSelected(index) == true
+            ? const Color.fromARGB(255, 101, 145, 211)
+            : const Color.fromARGB(255, 243, 243, 243),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(32),
+          onTap: () {},
+          splashColor: Colors.indigo[50],
+          child: MultiSelectItem(
+            isSelecting: controller.isSelecting,
+            onSelected: () {
+              setState(() {
+                controller.toggle(index);
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: ListTile(
+                title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // ignore: avoid_unnecessary_containers
+                      Container(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              DateFormat('h:mm')
+                                  .format(Schedule.listOfTimes[index].data),
+                              style: TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontSize: getadaptiveTextSize(context, 48),
+                                  fontWeight: FontWeight.w500),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: 4, left: 6),
+                              child: Text(
+                                DateFormat('a')
+                                    .format(Schedule.listOfTimes[index].data),
+                                style: TextStyle(
+                                    fontFamily: "Poppins",
+                                    fontSize: getadaptiveTextSize(context, 24),
+                                    fontWeight: FontWeight.normal),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ]),
+                subtitle: Text("Sunday, Monday, Thursday"),
+                trailing: Switch(
+                    activeColor: const Color.fromARGB(255, 33, 31, 103),
+                    value: Schedule.listOfTimes[index].isActive,
+                    onChanged: (value) {
+                      setState(() {
+                        Schedule.listOfTimes[index].isActive = value;
+                      });
+                    }),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4, left: 6),
-                child: Text(
-                  DateFormat('a').format(widget.time.data),
-                  style: TextStyle(
-                      fontFamily: "Poppins",
-                      fontSize: getadaptiveTextSize(context, 24),
-                      fontWeight: FontWeight.normal),
-                ),
-              )
-            ],
+            ),
           ),
         ),
-
-        Switch(
-            activeColor: const Color.fromARGB(255, 33, 31, 103),
-            value: widget.time.isActive,
-            onChanged: (value) {
-              setState(() {
-                widget.time.isActive = value;
-              });
-            })
-        /*
-          widget.time.isSelected == true
-              ? IconButton(
-                  icon: const Icon(Icons.delete_forever_rounded),
-                  onPressed: widget.onDelete,
-                )
-              : Switch(
-                  activeColor: const Color.fromARGB(255, 33, 31, 103),
-                  value: widget.time.isActive,
-                  onChanged: (value) {
-                    setState(() {
-                      widget.time.isActive = value;
-                    });
-                  })
-                  */
-      ]),
+      ),
     );
   }
 }
-*/
 
 class Schedule {
-  // int scheduleRotationIndex = 0;
-  // ignore: unused_local_variable
-
   // Lists in dart have methods such as .add() and .remove()
   // For instance, we set scheduled time to 5:30 AM
   static List<ListItem<dynamic>> listOfTimes = [
