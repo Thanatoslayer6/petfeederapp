@@ -53,44 +53,63 @@ class _SchedulePageState extends State<SchedulePage> {
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.alarm_add_rounded),
         label: const Text("Add Schedule"),
-        onPressed: () async {
+        onPressed: () {
           // Deselect all selected items if existing
           setState(() {
             scheduleController.deselectAll();
           });
-          // Logic for setting schedule
-          TimeOfDay? pickedTime = await showTimePicker(
-            initialTime: TimeOfDay.now(),
-            context: context,
-          );
-
-          // Let the user pick a certain time first...
-          if (pickedTime != null) {
-            addItem(pickedTime);
-            // TODO: After user picks a time, tell on what day... like everyday? every mon?
-            // Show dialog box
-          } else {
-            // TODO: Decide what to do here...
-            // ignore: avoid_print
-            print("User cancelled");
-          }
+          addTimeItem();
         },
       ),
     );
   }
 
-  void addItem(TimeOfDay pickedTime) {
-    // Add schedule
-    Schedule.listOfTimes.add(ListItem(DateTime(
-        DateTimeService.timeNow.year,
-        DateTimeService.timeNow.month,
-        DateTimeService.timeNow.day,
-        pickedTime.hour,
-        pickedTime.minute)));
+  void addTimeItem() async {
+    // Logic for setting schedule
+    TimeOfDay? pickedTime = await showTimePicker(
+      initialTime: TimeOfDay.now(),
+      context: context,
+    );
+
+    // Let the user pick a certain time first...
+    if (pickedTime != null) {
+      // Add schedule
+      Schedule.listOfTimes.add(ListItem(DateTime(
+          DateTimeService.timeNow.year,
+          DateTimeService.timeNow.month,
+          DateTimeService.timeNow.day,
+          pickedTime.hour,
+          pickedTime.minute)));
+    } else {
+      print("User cancelled");
+    }
     setState(() {
       // Update controller length
       scheduleController.set(Schedule.listOfTimes.length);
     });
+  }
+
+  void editTimeItem(int indexOfItemToBeEdited) async {
+    // Set initial time as the time of the item
+    TimeOfDay? pickedTime = await showTimePicker(
+      initialTime: TimeOfDay.fromDateTime(
+          Schedule.listOfTimes[indexOfItemToBeEdited].data),
+      context: context,
+    );
+
+    if (pickedTime != null) {
+      // Edit current time
+      setState(() {
+        Schedule.listOfTimes[indexOfItemToBeEdited].data = DateTime(
+            DateTimeService.timeNow.year,
+            DateTimeService.timeNow.month,
+            DateTimeService.timeNow.day,
+            pickedTime.hour,
+            pickedTime.minute);
+      });
+    } else {
+      print("User cancelled editing time");
+    }
   }
 
   void deleteSelectedItems() {
@@ -106,7 +125,7 @@ class _SchedulePageState extends State<SchedulePage> {
     });
   }
 
-  List<IconButton>? actionButtonLogic() {
+  List<IconButton> actionButtonLogic() {
     if (scheduleController.isSelecting == true) {
       return [
         IconButton(
@@ -126,6 +145,8 @@ class _SchedulePageState extends State<SchedulePage> {
           },
         )
       ];
+    } else {
+      return [];
     }
   }
 
@@ -165,6 +186,7 @@ class _SchedulePageState extends State<SchedulePage> {
             child: Column(
               children: [
                 Container(
+                  // color: Colors.amber,
                   padding: const EdgeInsets.all(8),
                   // START OF CONTAINER CHILDREN (LISTTILE)
                   child: ListTile(
@@ -174,35 +196,40 @@ class _SchedulePageState extends State<SchedulePage> {
                             children: [
                           // ignore: avoid_unnecessary_containers
                           Container(
-                            // color: Colors.red,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      DateFormat('h:mm').format(
-                                          Schedule.listOfTimes[index].data),
-                                      style: TextStyle(
-                                          fontFamily: "Poppins",
-                                          fontSize:
-                                              getadaptiveTextSize(context, 48),
-                                          fontWeight: FontWeight.w700),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 6),
-                                      child: Text(
-                                        DateFormat('a').format(
+                                GestureDetector(
+                                  onTap: () {
+                                    editTimeItem(index);
+                                    print("Editing time now");
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        DateFormat('h:mm').format(
                                             Schedule.listOfTimes[index].data),
                                         style: TextStyle(
                                             fontFamily: "Poppins",
                                             fontSize: getadaptiveTextSize(
-                                                context, 24),
-                                            fontWeight: FontWeight.normal),
+                                                context, 48),
+                                            fontWeight: FontWeight.w700),
                                       ),
-                                    )
-                                  ],
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 6),
+                                        child: Text(
+                                          DateFormat('a').format(
+                                              Schedule.listOfTimes[index].data),
+                                          style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontSize: getadaptiveTextSize(
+                                                  context, 24),
+                                              fontWeight: FontWeight.normal),
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ),
                                 Container(
                                   margin: const EdgeInsets.only(top: 12),
@@ -213,7 +240,7 @@ class _SchedulePageState extends State<SchedulePage> {
                                         fontFamily: "Poppins",
                                         fontSize:
                                             getadaptiveTextSize(context, 16),
-                                        fontWeight: FontWeight.w100),
+                                        fontWeight: FontWeight.w300),
                                   ),
                                 ),
                               ],
@@ -243,7 +270,13 @@ class _SchedulePageState extends State<SchedulePage> {
                                               .isEditingNow = false;
                                     });
                                   },
-                                  icon: const Icon(Icons.arrow_drop_down))
+                                  icon: Schedule.listOfTimes[index]
+                                              .isEditingNow ==
+                                          true
+                                      ? const Icon(
+                                          Icons.keyboard_arrow_up_rounded)
+                                      : const Icon(
+                                          Icons.keyboard_arrow_down_rounded))
                             ],
                           ),
                         ]
@@ -255,7 +288,7 @@ class _SchedulePageState extends State<SchedulePage> {
                 ),
                 // END FIRST CONTAINER
                 // ADD THE STUFF HERE
-                WeekDayDropDown(index),
+                ...WeekDayDropDown(index),
               ],
             ),
           ),
@@ -265,30 +298,45 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   // ignore: non_constant_identifier_names
-  Widget WeekDayDropDown(int index) {
+  List<Widget> WeekDayDropDown(int index) {
     // Schedule
     return Schedule.listOfTimes[index].isEditingNow == true
-        ? WeekdaySelector(
-            // We display the last tapped value in the example app
-            onChanged: (int day) {
-              // print(printIntAsDay(day));
-              setState(() {
-                Schedule.listOfTimes[index].weekDaysIndex[day % 7] =
-                    !Schedule.listOfTimes[index].weekDaysIndex[day % 7];
-              });
-            },
-            values: Schedule.listOfTimes[index].weekDaysIndex,
-            shortWeekdays: const [
-              'Sun',
-              'Mon',
-              'Tue',
-              'Wed',
-              'Thu',
-              'Fri',
-              'Sat',
-            ],
-          )
-        : Container();
+        ? [
+            const Divider(
+              height: 0,
+              thickness: 1,
+              color: Color.fromARGB(70, 111, 111, 111),
+              indent: 32,
+              endIndent: 32,
+            ),
+            Container(
+              margin:
+                  const EdgeInsets.only(left: 16, right: 16, bottom: 8, top: 8),
+              // color: Colors.red,
+              child: WeekdaySelector(
+                // We display the last tapped value in the example app
+                onChanged: (int day) {
+                  // print(printIntAsDay(day));
+                  setState(() {
+                    Schedule.listOfTimes[index].weekDaysIndex[day % 7] =
+                        !Schedule.listOfTimes[index].weekDaysIndex[day % 7];
+                  });
+                },
+                values: Schedule.listOfTimes[index].weekDaysIndex,
+                shortWeekdays: const [
+                  'Sun',
+                  'Mon',
+                  'Tue',
+                  'Wed',
+                  'Thu',
+                  'Fri',
+                  'Sat',
+                ],
+                // selectedShape: ,
+              ),
+            )
+          ]
+        : [];
   }
 }
 
@@ -311,6 +359,7 @@ class ListItem<T> {
   ListItem(this.data); //Constructor to assign the data
 }
 
+/*
 printIntAsDay(int day) {
   print('Received integer: $day. Corresponds to day: ${intDayToEnglish(day)}');
 }
@@ -325,6 +374,7 @@ String intDayToEnglish(int day) {
   if (day % 7 == DateTime.sunday % 7) return 'Sunday';
   throw '🐞 This should never have happened: $day';
 }
+*/
 
 String showWeekDays(List<bool> list) {
   String temp = "";
@@ -354,8 +404,6 @@ String showWeekDays(List<bool> list) {
     if (list[0] == true) {
       days.add("Sun");
     }
-    // print(days);
-    // print(days.join(', '));
     temp = days.join(', ');
   }
   return temp;

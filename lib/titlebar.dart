@@ -37,7 +37,7 @@ class TitleBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 16);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 18);
 }
 
 class ClockWidget extends StatelessWidget {

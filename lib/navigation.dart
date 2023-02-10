@@ -13,21 +13,27 @@ class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return TabBar(
-      controller: DefaultTabController.of(context),
-      labelColor: activeColor,
-      unselectedLabelColor: inactiveColor,
-      splashFactory: NoSplash.splashFactory,
-      labelStyle: const TextStyle(
-          fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
-      // This runs a custom indicator design
-      indicator: const CustomTabIndicator(radius: 10, indicatorHeight: 10),
-      labelPadding: const EdgeInsets.only(bottom: 6),
-      tabs: const [
-        Tab(icon: Icon(Icons.home_filled), text: 'Homepage'),
-        Tab(icon: Icon(Icons.camera), text: 'Camera'),
-        Tab(icon: Icon(Icons.settings), text: 'Settings')
-      ],
+    return Theme(
+      // Wrap inside of Theme widget, then disable all highlight and splash effects
+      data: ThemeData(
+        highlightColor: Colors.transparent,
+      ),
+      child: TabBar(
+        controller: DefaultTabController.of(context),
+        labelColor: activeColor,
+        unselectedLabelColor: inactiveColor,
+        splashFactory: NoSplash.splashFactory,
+        labelStyle: const TextStyle(
+            fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+        // This runs a custom indicator design
+        indicator: const CustomTabIndicator(radius: 10, indicatorHeight: 10),
+        labelPadding: const EdgeInsets.only(bottom: 6),
+        tabs: const [
+          Tab(icon: Icon(Icons.home_filled), text: 'Homepage'),
+          Tab(icon: Icon(Icons.camera), text: 'Camera'),
+          Tab(icon: Icon(Icons.settings), text: 'Settings')
+        ],
+      ),
     );
   }
 }
