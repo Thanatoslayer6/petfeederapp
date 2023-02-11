@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_const
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'adaptive.dart';
@@ -37,7 +39,7 @@ class TitleBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 18);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 20);
 }
 
 class ClockWidget extends StatelessWidget {
