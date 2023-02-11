@@ -1,7 +1,5 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'adaptive.dart';
@@ -16,7 +14,7 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  bool isAutomaticMode = true;
+  // bool isAutomaticMode = true;
   int activeScheduleRotationIndex = 0;
   // List<DateTime> activeSchedules = [];
   @override
@@ -26,9 +24,9 @@ class _HomepageState extends State<Homepage> {
     var activeSchedules = getScheduleInOrder();
     return Column(
       children: [
-        if (isAutomaticMode == true && activeSchedules.isNotEmpty) ...[
-          modeIdentifierWidget(
-              context, isAutomaticMode), // Automatic Mode ? Manual Mode
+        // Automatic mode
+        if (activeSchedules.isNotEmpty) ...[
+          modeIdentifierWidget(context, true), // Automatic Mode ? Manual Mode
           headlineAutomaticWidget(context), // Feeding Time (TIME)
           subHeadlineWidget(
               context,
@@ -40,8 +38,8 @@ class _HomepageState extends State<Homepage> {
           setScheduleButtonWidget(), // Set schedule
           uvLightButtonWidget(), // Enable/Disable uv light
           // setModeButtonWidget()
-        ] else if (isAutomaticMode == true && activeSchedules.isEmpty) ...[
-          modeIdentifierWidget(context, isAutomaticMode),
+        ] else if (activeSchedules.isEmpty) ...[
+          modeIdentifierWidget(context, false),
           // Container(
           //   // margin: EdgeInsets.only(top: 48, bottom: 16),
           //   color: Colors.amber,
@@ -59,12 +57,11 @@ class _HomepageState extends State<Homepage> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Icon(Icons.pets_rounded, size: 96),
-                  // child: Container(
-                  //   // color: Colors.green,
-                  //   // margin: EdgeInsets.only(left: 24),
-                  //   child: Icon(Icons.pets_rounded, size: 96),
-                  // ),
+                  child: Container(
+                    // color: Colors.green,
+                    // margin: EdgeInsets.only(left: 24),
+                    child: Icon(Icons.pets_rounded, size: 96),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
@@ -81,13 +78,14 @@ class _HomepageState extends State<Homepage> {
                                 fontSize: getadaptiveTextSize(context, 36),
                                 fontWeight: FontWeight.bold)),
                       ),
-                      feedButtonWidget(context)
+                      // feedButtonWidget(context)
                     ],
                   ),
                 ),
               ],
             ),
           ),
+          /*
           Container(
             // color: Colors.amber,
             margin: EdgeInsets.only(top: 16, bottom: 16, left: 32),
@@ -101,15 +99,12 @@ class _HomepageState extends State<Homepage> {
                   fontWeight: FontWeight.w300),
             ),
           ),
+          */
           // BUTTONS BELOW,
-          // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           setScheduleButtonWidget(), // Set schedule
+          // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           uvLightButtonWidget(), // Enable/Disable uv light
           // setModeButtonWidget()
-        ] else if (isAutomaticMode == false) ...[
-          // No schedule handling and such
-
-          setModeButtonWidget()
         ]
       ],
     );
@@ -233,6 +228,7 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
+/*
   Expanded setModeButtonWidget() {
     return Expanded(
         child: Container(
@@ -279,6 +275,7 @@ class _HomepageState extends State<Homepage> {
           )),
     ));
   }
+  */
 }
 
 Container modeIdentifierWidget(BuildContext context, bool isAutomaticMode) {

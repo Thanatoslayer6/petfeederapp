@@ -39,6 +39,7 @@ dependencies:
   intl: ^0.18.0
   mqtt_client: ^9.7.4
   weekday_selector: ^1.1.0
+  connectivity: ^3.0.6
 
 dev_dependencies:
   flutter_test:
