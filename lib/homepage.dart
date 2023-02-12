@@ -22,7 +22,9 @@ class _HomepageState extends State<Homepage> {
   void initState() {
     // Gets random quote if possible
     if (Quotes.hasQuote == false) {
-      Quotes.getRandom(setState);
+      // Quotes.getRandom(setState);
+      Quotes.getRandom();
+      setState(() {});
     }
     super.initState();
   }
@@ -415,9 +417,11 @@ Container feedButtonWidget(BuildContext context) {
   return Container(
     // color: Colors.amber,
     alignment: Alignment.center,
-    // margin: const EdgeInsets.only(top: 16),
+    // margin: const EdgeInsets.only(bottom: 16),
     child: ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        showDialog(context: context, builder: (context) => FeedMeDialog());
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color.fromARGB(255, 243, 243, 243),
         padding: const EdgeInsets.only(left: 32, right: 32),
@@ -442,4 +446,56 @@ String greeting() {
     return 'Good Afternoon,';
   }
   return 'Good Evening,';
+}
+
+class FeedMeDialog extends StatefulWidget {
+  const FeedMeDialog({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _FeedMeDialogState createState() => _FeedMeDialogState();
+}
+
+class _FeedMeDialogState extends State<FeedMeDialog> {
+  double _sliderValue = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Dispense food"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text("Duration (in seconds):"),
+          Slider(
+            value: _sliderValue,
+            min: 0.0,
+            max: 10.0,
+            divisions: 10,
+            onChanged: (newValue) {
+              setState(() {
+                _sliderValue = newValue;
+              });
+            },
+          ),
+          Text("$_sliderValue"),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text("Cancel"),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: Text("Feed"),
+          onPressed: () {
+            Navigator.of(context).pop();
+            // Add code here to send the duration value to the servo motor
+          },
+        ),
+      ],
+    );
+  }
 }

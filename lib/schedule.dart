@@ -299,6 +299,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
   // ignore: non_constant_identifier_names
   List<Widget> WeekDayDropDown(int index) {
+    // var sliderValue = 3.0;
     // Schedule
     return Schedule.listOfTimes[index].isEditingNow == true
         ? [
@@ -334,7 +335,38 @@ class _SchedulePageState extends State<SchedulePage> {
                 ],
                 // selectedShape: ,
               ),
-            )
+            ),
+            Column(
+              children: [
+                Container(
+                  // color: Colors.blue,
+                  margin: const EdgeInsets.only(left: 18, top: 16),
+                  alignment: Alignment.bottomLeft,
+                  child: Text(
+                    "Dispense food for ${Schedule.listOfTimes[index].dispenserDuration} seconds",
+                    style: TextStyle(
+                        fontFamily: "Poppins",
+                        fontWeight: FontWeight.w300,
+                        fontSize: getadaptiveTextSize(context, 14)),
+                  ),
+                ),
+                Container(
+                  // color: Colors.amber,
+                  margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                  child: Slider(
+                      min: 0.0,
+                      max: 10.0,
+                      divisions: 10,
+                      value: Schedule.listOfTimes[index].dispenserDuration,
+                      onChanged: (newValue) {
+                        setState(() {
+                          Schedule.listOfTimes[index].dispenserDuration =
+                              newValue;
+                        });
+                      }),
+                ),
+              ],
+            ),
           ]
         : [];
   }
@@ -354,6 +386,7 @@ class ListItem<T> {
   bool isActive = false;
   List<bool> weekDaysIndex = List.filled(7, true);
   bool isEditingNow = false;
+  double dispenserDuration = 2.0;
   // String repeatsEvery = "Everyday";
   T data; //Data of the user
   ListItem(this.data); //Constructor to assign the data
