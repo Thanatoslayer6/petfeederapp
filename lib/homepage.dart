@@ -1,10 +1,11 @@
 // ignore_for_file: prefer_const_constructors
-
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'adaptive.dart';
 import 'time.dart';
 import 'schedule.dart';
+import 'quotes.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -14,18 +15,27 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  // bool isAutomaticMode = true;
   int activeScheduleRotationIndex = 0;
-  // List<DateTime> activeSchedules = [];
+  bool isQuoteAlreadyAnimated = false;
+
+  @override
+  void initState() {
+    // Gets random quote if possible
+    if (Quotes.hasQuote == false) {
+      Quotes.getRandom(setState);
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    var activeSchedules = getScheduleInOrder();
     // final automaticModeFontColor = Color.fromARGB(255, 9, 104, 18);
     // final manualModeFontColor = Color.fromARGB(255, 129, 111, 5);
-    var activeSchedules = getScheduleInOrder();
     return Column(
       children: [
-        // Automatic mode
         if (activeSchedules.isNotEmpty) ...[
+          // AUTOMATIC MODE
           modeIdentifierWidget(context, true), // Automatic Mode ? Manual Mode
           headlineAutomaticWidget(context), // Feeding Time (TIME)
           subHeadlineWidget(
@@ -37,17 +47,11 @@ class _HomepageState extends State<Homepage> {
           // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           setScheduleButtonWidget(), // Set schedule
           uvLightButtonWidget(), // Enable/Disable uv light
+          activityLogButtonWidget()
           // setModeButtonWidget()
         ] else if (activeSchedules.isEmpty) ...[
+          // MANUAL MODE
           modeIdentifierWidget(context, false),
-          // Container(
-          //   // margin: EdgeInsets.only(top: 48, bottom: 16),
-          //   color: Colors.amber,
-          //   child: Icon(
-          //     Icons.pets_rounded,
-          //     size: 128,
-          //   ),
-          // ),
           // ignore: avoid_unnecessary_containers
           Container(
             // color: Colors.red,
@@ -56,55 +60,41 @@ class _HomepageState extends State<Homepage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  flex: 1,
-                  child: Container(
-                    // color: Colors.green,
-                    // margin: EdgeInsets.only(left: 24),
-                    child: Icon(Icons.pets_rounded, size: 96),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
                   child: Column(
                     children: [
+                      // GREETING HEADER
                       Container(
                         // color: Colors.yellow,
-                        alignment: Alignment.centerLeft,
-                        margin: EdgeInsets.only(top: 8, bottom: 16),
+                        // alignment: Alignment.centerLeft,
+                        margin: EdgeInsets.only(top: 16, bottom: 8),
                         child: Text(greeting(),
                             style: TextStyle(
                                 color: const Color.fromARGB(255, 33, 31, 103),
                                 fontFamily: 'Poppins',
-                                fontSize: getadaptiveTextSize(context, 36),
+                                fontSize: getadaptiveTextSize(context, 48),
                                 fontWeight: FontWeight.bold)),
                       ),
-                      // feedButtonWidget(context)
+                      // isQuoteAlreadyAnimated == true ? animateQuote(false) : animateQuote(true),
+                      // Some ternary condition superiority is shown xD
+                      ...((isQuoteAlreadyAnimated == true)
+                          ? animateQuote(true)
+                          : animateQuote(false)),
+                      // isQuoteAlreadyAnimated == true
+                      //     ? animateQuote(false)
+                      //     : animateQuote(true),
+                      feedButtonWidget(context)
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          /*
-          Container(
-            // color: Colors.amber,
-            margin: EdgeInsets.only(top: 16, bottom: 16, left: 32),
-            width: MediaQuery.of(context).size.width,
-            child: Text(
-              "NOTE: Set a schedule for automation",
-              style: TextStyle(
-                  fontFamily: "Poppins",
-                  fontSize: getadaptiveTextSize(context, 18),
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w300),
-            ),
-          ),
-          */
           // BUTTONS BELOW,
           setScheduleButtonWidget(), // Set schedule
           // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           uvLightButtonWidget(), // Enable/Disable uv light
           // setModeButtonWidget()
+          activityLogButtonWidget(),
         ]
       ],
     );
@@ -126,10 +116,6 @@ class _HomepageState extends State<Homepage> {
               (item) => item.weekDaysIndex[DateTimeService.timeNow.weekday % 7])
           .toList();
 
-      // print("Here's your schedule");
-      // activeSchedules.forEach((element) {
-      //   print(element.data);
-      // });
       return activeSchedules;
       // Print
     } else {
@@ -228,54 +214,132 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-/*
-  Expanded setModeButtonWidget() {
+  Expanded activityLogButtonWidget() {
     return Expanded(
-        child: Container(
-      padding: EdgeInsets.all(getadaptiveTextSize(context, 8)),
-      width: MediaQuery.of(context).size.width,
-      child: MaterialButton(
-          onPressed: () {
-            setState(() {
-              isAutomaticMode == true
-                  ? isAutomaticMode = false
-                  : isAutomaticMode = true;
-            });
-          },
-          // padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
-          padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
-              getadaptiveTextSize(context, 4)),
-          // color: Colors.grey,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-          color: const Color.fromARGB(255, 243, 243, 243),
-          elevation: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    isAutomaticMode == true ? "Manual Mode" : "Automatic Mode",
-                    style: TextStyle(
-                        color: const Color.fromARGB(255, 33, 31, 103),
-                        fontFamily: 'Poppins',
-                        fontSize: getadaptiveTextSize(context, 24),
-                        fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.left,
+      child: Container(
+        padding: EdgeInsets.all(getadaptiveTextSize(context, 8)),
+        width: MediaQuery.of(context).size.width,
+        child: MaterialButton(
+            onPressed: () {},
+            padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
+                getadaptiveTextSize(context, 4)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+            color: const Color.fromARGB(255, 243, 243, 243),
+            elevation: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "View Activity Log",
+                      style: TextStyle(
+                          color: const Color.fromARGB(255, 33, 31, 103),
+                          fontFamily: 'Poppins',
+                          fontSize: getadaptiveTextSize(context, 24),
+                          fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.left,
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Icon(Icons.keyboard_arrow_right_rounded)),
-            ],
-          )),
-    ));
+                Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Icon(Icons.keyboard_arrow_right_rounded)),
+              ],
+            )),
+      ),
+    );
   }
-  */
+
+  List<Widget> animateQuote(bool withAnimation) {
+    if (Quotes.hasQuote == true && withAnimation == true) {
+      return [
+        Container(
+          // color: Colors.green,
+          alignment: Alignment.center,
+          margin: EdgeInsets.only(
+              left: getadaptiveTextSize(context, 16),
+              right: getadaptiveTextSize(context, 16)),
+          child: AnimatedTextKit(
+            animatedTexts: [
+              TypewriterAnimatedText(
+                Quotes.message,
+                textAlign: TextAlign.center,
+                textStyle: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    fontFamily: "Poppins",
+                    fontSize: getadaptiveTextSize(context, 12)),
+              )
+            ],
+            // isRepeatingAnimation: false,
+            repeatForever: false,
+            totalRepeatCount: 1,
+            // displayFullTextOnTap: true,
+          ),
+        ),
+
+        // AUTHOR
+        Container(
+          // color: Colors.orange,
+          padding: EdgeInsets.all(8),
+          alignment: Alignment.topCenter,
+          child: AnimatedTextKit(
+            animatedTexts: [
+              TypewriterAnimatedText(
+                "— ${Quotes.author}",
+                textAlign: TextAlign.center,
+                textStyle: TextStyle(
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w300,
+                    fontStyle: FontStyle.italic,
+                    fontSize: getadaptiveTextSize(context, 14)),
+              )
+            ],
+            // isRepeatingAnimation: false,
+            repeatForever: false,
+            totalRepeatCount: 1,
+            // displayFullTextOnTap: true,
+          ),
+        ),
+      ];
+    } else if (Quotes.hasQuote == true && withAnimation == false) {
+      return [
+        Container(
+            // color: Colors.green,
+            alignment: Alignment.center,
+            margin: EdgeInsets.only(
+                left: getadaptiveTextSize(context, 16),
+                right: getadaptiveTextSize(context, 16)),
+            child: Text(
+              Quotes.message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.w300,
+                  fontFamily: "Poppins",
+                  fontSize: getadaptiveTextSize(context, 12)),
+            )),
+
+        // AUTHOR
+        Container(
+            // color: Colors.orange,
+            padding: EdgeInsets.all(8),
+            alignment: Alignment.topCenter,
+            child: Text(
+              "— ${Quotes.author}",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontWeight: FontWeight.w300,
+                  fontStyle: FontStyle.italic,
+                  fontSize: getadaptiveTextSize(context, 14)),
+            )),
+      ];
+    }
+    return [];
+  }
 }
 
 Container modeIdentifierWidget(BuildContext context, bool isAutomaticMode) {
@@ -314,25 +378,6 @@ Container headlineAutomaticWidget(BuildContext context) {
                 fontWeight: FontWeight.bold)),
       ));
 }
-/*
-Container headlineManualWidget(BuildContext context) {
-  return Container(
-      margin: const EdgeInsets.only(right: 16),
-      // margin: const EdgeInsets.only(top: 16, bottom: 4, right: 16),
-      width: MediaQuery.of(context).size.width,
-      color: Colors.orange,
-      alignment: Alignment.topRight,
-      child: FittedBox(
-        fit: BoxFit.contain,
-        child: Text("Welcome!",
-            style: TextStyle(
-                color: const Color.fromARGB(255, 33, 31, 103),
-                fontFamily: 'Poppins',
-                fontSize: getadaptiveTextSize(context, 50),
-                fontWeight: FontWeight.bold)),
-      ));
-}
-*/
 
 Container subHeadlineWidget(BuildContext context, DateTime activeSchedule) {
   return Container(
@@ -369,7 +414,7 @@ Container countdownWidget(DateTime activeSchedule) {
 Container feedButtonWidget(BuildContext context) {
   return Container(
     // color: Colors.amber,
-    alignment: Alignment.centerLeft,
+    alignment: Alignment.center,
     // margin: const EdgeInsets.only(top: 16),
     child: ElevatedButton(
       onPressed: () {},

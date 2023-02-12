@@ -1,15 +1,20 @@
-import 'dart:async';
+// import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+// import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+// import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:petfeederapp/camera.dart';
+import 'package:petfeederapp/quotes.dart';
 import 'package:petfeederapp/settings.dart';
 import 'package:flutter/services.dart';
+import 'adaptive.dart';
 import 'navigation.dart';
 import 'titlebar.dart';
 import 'homepage.dart';
 import 'time.dart';
+// import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart'
 // import 'package:connectivity/connectivity.dart';
-import 'internet.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,83 +40,105 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // void initState() {
-  //   super.initState();
-  /*
-    connectivitySubscription = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult nowresult) {
-      // Means there is no internet connection
-      if (nowresult == ConnectivityResult.none) {
-        print("Nonineter");
-        // Show alert dialog
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text("No Internet"),
-              content: const Text(
-                  "Please connect to the Internet to use the application"),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },
-                  child: Container(
-                    color: Colors.black54,
-                    padding: const EdgeInsets.all(14),
-                    child: const Text("Exit"),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },
-                  child: Container(
-                    color: Colors.black87,
-                    padding: const EdgeInsets.all(14),
-                    child: const Text("Retry"),
-                  ),
-                ),
-              ],
-            ),
-          );
-        });
-      } else {
-        print("Idk man");
-      }
-      */
-  // previousresult = nowresult;
-  // });
-  // }
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: StreamBuilder(
+        stream: Connectivity().onConnectivityChanged,
+        builder: ((context, snapshot) {
+          final result = snapshot.data;
+          if (result == ConnectivityResult.none || result == null) {
+            return const DefaultTabController(
+              length: 3,
+              child: Scaffold(
+                appBar: TitleBar(),
+                bottomNavigationBar: Navigation(),
+                body: TabBarView(children: [
+                  NoInternetConnection(),
+                  NoInternetConnection(),
+                  Settings()
+                ]),
+              ),
+            );
+          } else {
+            // print("Internet connection is active");
+            // return Homepage();
+            return const DefaultTabController(
+              length: 3,
+              child: Scaffold(
+                appBar: TitleBar(),
+                bottomNavigationBar: Navigation(),
+                body: TabBarView(children: [Homepage(), Camera(), Settings()]),
+              ),
+            );
+          }
+        }),
+      ),
+    );
+    // TESTING BELOW
+  }
+}
 
-  // @override
-  // void dispose() {
-  //   super.dispose();
-  // }
+class NoInternetConnection extends StatelessWidget {
+  const NoInternetConnection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        // theme: ThemeData(
-        //     highlightColor: Colors.transparent,
-        //     splashColor: Colors.transparent),
-        home: DefaultTabController(
-          length: 3,
-          child: Scaffold(
-            appBar: TitleBar(),
-            bottomNavigationBar: Navigation(),
-            body: TabBarView(children: [Homepage(), Camera(), Settings()]),
+    return Container(
+      color: Colors.grey[300],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Center(
+            child: Icon(
+              Icons.signal_wifi_statusbar_connected_no_internet_4_rounded,
+              size: 128,
+              color: Color.fromARGB(255, 33, 31, 103),
+            ),
           ),
-        ));
-  }
+          Container(
+            margin: EdgeInsets.all(getadaptiveTextSize(context, 8)),
+            child: Text(
+              "Whoops!",
+              style: TextStyle(
+                  color: const Color.fromARGB(255, 33, 31, 103),
+                  fontFamily: 'Poppins',
+                  fontSize: getadaptiveTextSize(context, 32),
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(
+                top: getadaptiveTextSize(context, 4),
+                bottom: getadaptiveTextSize(context, 32)),
+            child: Text(
+              "Slow or no internet connection.\nPlease check your internet settings",
+              style: TextStyle(
+                  color: const Color.fromARGB(255, 33, 31, 103),
+                  fontFamily: 'Poppins',
+                  fontSize: getadaptiveTextSize(context, 18),
+                  fontWeight: FontWeight.w300),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // MaterialButton(
+          //   color: Colors.grey[50],
+          //   onPressed: () {
 
-  // Future<bool> checkInternetConnection() async {
-  //   // ConnectivityResult connectivityResult =
-  //   //     await Connectivity().checkConnectivity();
-  //   // return connectivityResult != ConnectivityResult.none;
-  //   // var connectivityResult = await (Connectivity().checkConnectivity());
-  //   // return connectivityResult != ConnectivityResult.none;
-  // }
+          //   },
+          //   textColor: const Color.fromARGB(255, 33, 31, 103),
+          //   padding: EdgeInsets.fromLTRB(
+          //       getadaptiveTextSize(context, 32),
+          //       getadaptiveTextSize(context, 16),
+          //       getadaptiveTextSize(context, 32),
+          //       getadaptiveTextSize(context, 16)),
+          //   shape:
+          //       RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          //   child: const Text("RETRY"),
+          // )
+        ],
+      ),
+    );
+  }
 }

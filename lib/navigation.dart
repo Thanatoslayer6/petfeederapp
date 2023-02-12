@@ -19,7 +19,6 @@ class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
         highlightColor: Colors.transparent,
       ),
       child: TabBar(
-        controller: DefaultTabController.of(context),
         labelColor: activeColor,
         unselectedLabelColor: inactiveColor,
         splashFactory: NoSplash.splashFactory,
