@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 
 class Quotes {
   static bool hasQuote = false;
+  static bool isAlreadyAnimated = false;
   static late String message;
   static late String author;
 
@@ -18,9 +19,9 @@ class Quotes {
       author = jsonResponse['author'];
       hasQuote = true;
       // });
-      print("$message - $author");
+      return "$message - $author";
     } else {
-      print('Request failed with status: ${response.statusCode}.');
+      return "Request failed with status: ${response.statusCode}";
     }
   }
 }

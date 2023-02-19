@@ -16,17 +16,19 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   int activeScheduleRotationIndex = 0;
-  bool isQuoteAlreadyAnimated = false;
+  // bool isQuoteAlreadyAnimated = false;
 
   @override
   void initState() {
+    super.initState();
     // Gets random quote if possible
     if (Quotes.hasQuote == false) {
       // Quotes.getRandom(setState);
-      Quotes.getRandom();
-      setState(() {});
+      Quotes.getRandom().then((value) {
+        print(value);
+        setState(() {});
+      });
     }
-    super.initState();
   }
 
   @override
@@ -78,9 +80,10 @@ class _HomepageState extends State<Homepage> {
                       ),
                       // isQuoteAlreadyAnimated == true ? animateQuote(false) : animateQuote(true),
                       // Some ternary condition superiority is shown xD
-                      ...((isQuoteAlreadyAnimated == true)
-                          ? animateQuote(true)
-                          : animateQuote(false)),
+                      // ...((Quotes.isAlreadyAnimated == true)
+                      //     ? animateQuote(false)
+                      //     : animateQuote(true)),
+                      ...animateQuote(),
                       // isQuoteAlreadyAnimated == true
                       //     ? animateQuote(false)
                       //     : animateQuote(true),
@@ -256,8 +259,10 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  List<Widget> animateQuote(bool withAnimation) {
-    if (Quotes.hasQuote == true && withAnimation == true) {
+  List<Widget> animateQuote() {
+    if (Quotes.hasQuote == true && Quotes.isAlreadyAnimated == false) {
+      // Reverse boolean value
+      Quotes.isAlreadyAnimated = true;
       return [
         Container(
           // color: Colors.green,
@@ -307,7 +312,7 @@ class _HomepageState extends State<Homepage> {
           ),
         ),
       ];
-    } else if (Quotes.hasQuote == true && withAnimation == false) {
+    } else if (Quotes.hasQuote == true && Quotes.isAlreadyAnimated == true) {
       return [
         Container(
             // color: Colors.green,
@@ -425,9 +430,9 @@ Container feedButtonWidget(BuildContext context) {
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color.fromARGB(255, 243, 243, 243),
         padding: const EdgeInsets.only(left: 32, right: 32),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      child: Text("Feed Now",
+      child: Text("FEED NOW",
           style: TextStyle(
               color: const Color.fromARGB(255, 33, 31, 103),
               fontFamily: 'Poppins',
@@ -491,6 +496,8 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
         TextButton(
           child: Text("Feed"),
           onPressed: () {
+            // Handle MQTT here
+
             Navigator.of(context).pop();
             // Add code here to send the duration value to the servo motor
           },
