@@ -58,14 +58,9 @@ class _HomepageState extends State<Homepage> {
         });
       }
       String payload = json.encode(minifiedDateTime);
-      // TODO: This part
-      MQTT.publish("schedule", payload);
       // If payload is '[]' this means that user is in manual mode...
       // else he/she is on automation
-      // if (payload == "[]") {
-      //   MQTT.publish("schedule", payload);
-      // } else {}
-      // print(json.encode(toSend));
+      MQTT.publish("schedule", payload);
       Homepage.wentToSchedule = false;
     }
 
@@ -514,8 +509,9 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
   @override
   void initState() {
     super.initState();
-    MQTT.client.subscribe("feed_duration_response", MqttQos.exactlyOnce);
     // Listen for MQTT messages
+    // Subscribe to the needed topic
+    MQTT.client.subscribe("feed_duration_response", MqttQos.exactlyOnce);
     subscription =
         MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
       final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
@@ -541,6 +537,7 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
       _timeoutTimer!.cancel();
     }
     // Unsubscribe from MQTT messages
+    MQTT.client.unsubscribe("feed_duration_response");
     subscription.cancel();
     super.dispose();
   }
@@ -581,7 +578,6 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
               // Handle MQTT here
               MQTT.publish(
                   "feed_duration", (_sliderValue.toInt() * 1000).toString());
-
               setState(() {
                 starting = false;
               });

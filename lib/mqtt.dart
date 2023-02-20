@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -19,7 +18,7 @@ class MQTT {
     context.setClientAuthoritiesBytes(rootCA.buffer.asUint8List());
     client.setProtocolV311();
     client.securityContext = context;
-    client.logging(on: false);
+    client.logging(on: true);
     client.keepAlivePeriod = 20;
     client.port = 8883;
     client.secure = true;
