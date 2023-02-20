@@ -1,13 +1,21 @@
 // ignore_for_file: prefer_const_constructors
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:petfeederapp/mqtt.dart';
 import 'adaptive.dart';
 import 'time.dart';
 import 'schedule.dart';
 import 'quotes.dart';
 
 class Homepage extends StatefulWidget {
+  static bool wentToSchedule = false;
+  // ignore: prefer_typing_uninitialized_variables
+  static var activeSchedules;
   const Homepage({super.key});
 
   @override
@@ -23,37 +31,63 @@ class _HomepageState extends State<Homepage> {
     super.initState();
     // Gets random quote if possible
     if (Quotes.hasQuote == false) {
-      // Quotes.getRandom(setState);
       Quotes.getRandom().then((value) {
         print(value);
         setState(() {});
       });
     }
+    // Connect to the MQTT Broker
+    if (MQTT.isConnected == false) {
+      MQTT.connectToBroker();
+      print(MQTT.clientId);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    var activeSchedules = getScheduleInOrder();
-    // final automaticModeFontColor = Color.fromARGB(255, 9, 104, 18);
-    // final manualModeFontColor = Color.fromARGB(255, 129, 111, 5);
+    Homepage.activeSchedules = getScheduleInOrder();
+    // Send schedule to the ESP32
+    if (Homepage.wentToSchedule == true) {
+      print("Setting up schedule");
+      List minifiedDateTime = [];
+      // Get only the datetime objects from their hour and minute, then send to esp32
+      for (int i = 0; i < Homepage.activeSchedules.length; i++) {
+        minifiedDateTime.add({
+          'hour': Homepage.activeSchedules[i].data.hour,
+          'minute': Homepage.activeSchedules[i].data.minute,
+        });
+      }
+      String payload = json.encode(minifiedDateTime);
+      // TODO: This part
+      MQTT.publish("schedule", payload);
+      // If payload is '[]' this means that user is in manual mode...
+      // else he/she is on automation
+      // if (payload == "[]") {
+      //   MQTT.publish("schedule", payload);
+      // } else {}
+      // print(json.encode(toSend));
+      Homepage.wentToSchedule = false;
+    }
+
     return Column(
       children: [
-        if (activeSchedules.isNotEmpty) ...[
+        if (Homepage.activeSchedules.isNotEmpty) ...[
           // AUTOMATIC MODE
           modeIdentifierWidget(context, true), // Automatic Mode ? Manual Mode
           headlineAutomaticWidget(context), // Feeding Time (TIME)
           subHeadlineWidget(
               context,
-              activeSchedules[activeScheduleRotationIndex]
+              Homepage.activeSchedules[activeScheduleRotationIndex]
                   .data), // HH:MM a (TIME)
-          countdownWidget(activeSchedules[activeScheduleRotationIndex].data),
+          countdownWidget(
+              Homepage.activeSchedules[activeScheduleRotationIndex].data),
           // BUTTONS BELOW,
           // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           setScheduleButtonWidget(), // Set schedule
           uvLightButtonWidget(), // Enable/Disable uv light
           activityLogButtonWidget()
           // setModeButtonWidget()
-        ] else if (activeSchedules.isEmpty) ...[
+        ] else if (Homepage.activeSchedules.isEmpty) ...[
           // MANUAL MODE
           modeIdentifierWidget(context, false),
           // ignore: avoid_unnecessary_containers
@@ -125,11 +159,14 @@ class _HomepageState extends State<Homepage> {
       // Print
     } else {
       print("No items active, so no schedule will be set");
+      // Send schedule to ESP32
+      return [];
     }
-    return [];
   }
 
   Expanded setScheduleButtonWidget() {
+    // Homepage.isScheduleSetToDevice = false;
+    // Schedule.scheduleIsSet = false;
     return Expanded(
       child: Container(
         // color: Colors.amber,
@@ -142,8 +179,9 @@ class _HomepageState extends State<Homepage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => const SchedulePage())).then((_) {
-                // Simply update page after exiting the page
+                // // Simply update page after exiting the page
                 setState(() {});
+                Homepage.wentToSchedule = true;
               });
             },
             padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
@@ -425,7 +463,10 @@ Container feedButtonWidget(BuildContext context) {
     // margin: const EdgeInsets.only(bottom: 16),
     child: ElevatedButton(
       onPressed: () {
-        showDialog(context: context, builder: (context) => FeedMeDialog());
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => FeedMeDialog());
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color.fromARGB(255, 243, 243, 243),
@@ -462,44 +503,125 @@ class FeedMeDialog extends StatefulWidget {
 }
 
 class _FeedMeDialogState extends State<FeedMeDialog> {
-  double _sliderValue = 0.0;
+  // TODO: BEAUTIFY
+  late StreamSubscription subscription;
+  double _sliderValue = 1.0;
+  bool starting = true;
+  bool failed = false;
+  bool done = false;
+  Timer? _timeoutTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    MQTT.client.subscribe("feed_duration_response", MqttQos.exactlyOnce);
+    // Listen for MQTT messages
+    subscription =
+        MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
+      final String message =
+          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+      if (c[0].topic == "feed_duration_response" && message == "true") {
+        setState(() {
+          failed = false;
+          done = true;
+          // Close the dialog
+          Timer(Duration(seconds: 2), () {
+            Navigator.of(context).pop();
+          });
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    if (_timeoutTimer != null && _timeoutTimer!.isActive) {
+      _timeoutTimer!.cancel();
+    }
+    // Unsubscribe from MQTT messages
+    subscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text("Dispense food"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text("Duration (in seconds):"),
-          Slider(
-            value: _sliderValue,
-            min: 0.0,
-            max: 10.0,
-            divisions: 10,
-            onChanged: (newValue) {
+    if (starting == true && failed == false) {
+      return AlertDialog(
+        title: Text("Dispense food"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text("Duration (in seconds):"),
+            Slider(
+              value: _sliderValue,
+              min: 1.0,
+              max: 10.0,
+              divisions: 9,
+              onChanged: (newValue) {
+                setState(() {
+                  _sliderValue = newValue;
+                });
+              },
+            ),
+            Text("$_sliderValue"),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text("Cancel"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text("Feed"),
+            onPressed: () {
+              // Handle MQTT here
+              MQTT.publish(
+                  "feed_duration", (_sliderValue.toInt() * 1000).toString());
+
               setState(() {
-                _sliderValue = newValue;
+                starting = false;
+              });
+              _timeoutTimer = Timer(Duration(seconds: 15), () {
+                setState(() {
+                  failed = true;
+                });
               });
             },
           ),
-          Text("$_sliderValue"),
         ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          child: Text("Cancel"),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        TextButton(
-          child: Text("Feed"),
-          onPressed: () {
-            // Handle MQTT here
+      );
+    } else if (starting == false && failed == false) {
+      if (done == false) {
+        return AlertDialog(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: const [
+              CircularProgressIndicator(),
+              Text("Waiting for response"),
+            ],
+          ),
+        );
+      } else if (done == true) {
+        // Show success
+        return AlertDialog(
+          content: Text("Successfully dispensed food"),
+        );
+      }
+    }
 
+    // FAILS
+    return AlertDialog(
+      content: Text("Failed to dispense food"),
+      actions: [
+        TextButton(
+          child: Text("Ok"),
+          onPressed: () {
             Navigator.of(context).pop();
-            // Add code here to send the duration value to the servo motor
           },
         ),
       ],

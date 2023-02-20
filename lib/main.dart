@@ -3,8 +3,10 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 // import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 // import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:petfeederapp/camera.dart';
+import 'package:petfeederapp/mqtt.dart';
 import 'package:petfeederapp/quotes.dart';
 import 'package:petfeederapp/settings.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +18,7 @@ import 'time.dart';
 // import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart'
 // import 'package:connectivity/connectivity.dart';
 
-void main() {
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Force portrait mode
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -27,7 +29,8 @@ void main() {
 
   // Start time
   DateTimeService.init();
-
+  // Load environment variables
+  await dotenv.load(fileName: "assets/.env");
   // Then call runApp() as normal
   runApp(const MyApp());
 }
@@ -62,8 +65,7 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           } else {
-            // print("Internet connection is active");
-            // return Homepage();
+            // First we connect to the MQTT Broker
             return const DefaultTabController(
               length: 3,
               child: Scaffold(

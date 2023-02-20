@@ -354,9 +354,9 @@ class _SchedulePageState extends State<SchedulePage> {
                   // color: Colors.amber,
                   margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                   child: Slider(
-                      min: 0.0,
+                      min: 1.0,
                       max: 10.0,
-                      divisions: 10,
+                      divisions: 9,
                       value: Schedule.listOfTimes[index].dispenserDuration,
                       onChanged: (newValue) {
                         setState(() {
@@ -391,23 +391,6 @@ class ListItem<T> {
   T data; //Data of the user
   ListItem(this.data); //Constructor to assign the data
 }
-
-/*
-printIntAsDay(int day) {
-  print('Received integer: $day. Corresponds to day: ${intDayToEnglish(day)}');
-}
-
-String intDayToEnglish(int day) {
-  if (day % 7 == DateTime.monday % 7) return 'Monday';
-  if (day % 7 == DateTime.tuesday % 7) return 'Tueday';
-  if (day % 7 == DateTime.wednesday % 7) return 'Wednesday';
-  if (day % 7 == DateTime.thursday % 7) return 'Thursday';
-  if (day % 7 == DateTime.friday % 7) return 'Friday';
-  if (day % 7 == DateTime.saturday % 7) return 'Saturday';
-  if (day % 7 == DateTime.sunday % 7) return 'Sunday';
-  throw '🐞 This should never have happened: $day';
-}
-*/
 
 String showWeekDays(List<bool> list) {
   String temp = "";
