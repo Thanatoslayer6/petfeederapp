@@ -1,8 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
+
+// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:petfeederapp/mqtt.dart';
-import 'package:image/image.dart' as img;
+// import 'package:image/image.dart' as img;
 
 class Camera extends StatefulWidget {
   const Camera({super.key});
@@ -44,13 +46,24 @@ class _CameraState extends State<Camera> {
           } else {
             final receivedPayload =
                 snapshot.data![0].payload as MqttPublishMessage;
-            final decodedImageBytes =
-                Uint8List.fromList(receivedPayload.payload.message);
+
+            final String binaryImageData =
+                MqttPublishPayload.bytesToStringAsString(
+                    receivedPayload.payload.message);
+            final String base64Image = base64Encode(binaryImageData.codeUnits);
+            print(base64Image);
+            return Image.memory(
+              base64.decode(base64Image),
+              gaplessPlayback: true,
+            );
+            /*
+            final decodedImageBytes = Uint8List.fromList(receivedPayload.payload.message);
             img.Image? jpegImage = img.decodeJpg(decodedImageBytes);
             return Image.memory(
               img.encodeJpg(jpegImage!),
               gaplessPlayback: true,
             );
+            */
           }
         },
       ),

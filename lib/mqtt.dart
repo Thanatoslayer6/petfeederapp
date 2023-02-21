@@ -13,9 +13,15 @@ class MQTT {
 
   static connectToBroker() async {
     print("Connecting to MQTT Broker");
-    ByteData rootCA = await rootBundle.load('assets/certs/RootCA.pem');
+    ByteData letsEncryptCA =
+        await rootBundle.load('assets/certs/lets-encrypt-r3.pem');
+    // SecurityContext.defaultContext.setTrustedCertificatesBytes(letsEncryptCA.buffer.asUint8List());
+
+    // ByteData rootCA = await rootBundle.load('assets/certs/RootCA.pem');
     SecurityContext context = SecurityContext.defaultContext;
-    context.setClientAuthoritiesBytes(rootCA.buffer.asUint8List());
+    context.setTrustedCertificatesBytes(letsEncryptCA.buffer.asUint8List());
+    // context.setClientAuthoritiesBytes(rootCA.buffer.asUint8List());
+    // context.setClientAuthoritiesBytes(letsEncryptCA.buffer.asInt8List());
     client.setProtocolV311();
     client.securityContext = context;
     client.logging(on: true);

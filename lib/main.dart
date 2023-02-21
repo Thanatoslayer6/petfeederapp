@@ -1,10 +1,6 @@
-// import 'dart:async';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
-// import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-// import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:petfeederapp/camera.dart';
 import 'package:petfeederapp/settings.dart';
 import 'package:flutter/services.dart';
@@ -13,8 +9,6 @@ import 'navigation.dart';
 import 'titlebar.dart';
 import 'homepage.dart';
 import 'time.dart';
-// import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart'
-// import 'package:connectivity/connectivity.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
