@@ -1,16 +1,34 @@
 # petfeederapp
 
-A new Flutter project.
+Capstone Project - Smart Pet Feeder Application
 
-## Getting Started
+Built from *Flutter* and *MQTT*
 
-This project is a starting point for a Flutter application.
+![](assets/20230221_154415_PetFeederApplicationDesign.png)
 
-A few resources to get you started if this is your first Flutter project:
+### Tools:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* Visual Studio Code ([VSCodium](https://vscodium.com/) _better fork imo_)
+* Arduino IDE ([Legacy](https://www.arduino.cc/en/software/) IDE 1.8.19)
+* [MQTT CLI](https://hivemq.github.io/mqtt-cli/)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Materials:
+
+* Arduino UNO R3 ([View Code](https://github.com/Thanatoslayer6/ArduinoSketches/tree/main/PetFeederExperiment/Uno))
+* ESP32-Cam (HW-818) with OV2640 Camera ([View Code](https://github.com/Thanatoslayer6/ArduinoSketches/tree/main/PetFeederExperiment/ESP32))
+* SG90 Servo Motor
+* Small/Mini Breadboard
+* 5V Single-Channel Relay Module
+* UV-C Light Tube (around 3-6 inches)
+
+*to be continued...*
+
+### Progress/Features
+
+* [ ] Dark/Light theme
+* [X] Manual Feeding (On button click)
+* [ ] Automated Feeding (Based on schedule)
+* [ ] UV-Light (Enable/Disable)
+* [X] Camera Stream
+* [ ] Speaker
+* [ ] History Log (Feeding logs)
