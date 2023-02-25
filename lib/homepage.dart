@@ -523,7 +523,8 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
           failed = false;
           done = true;
           // Close the dialog
-          Timer(Duration(seconds: 2), () {
+          // Wait for the dispense to finish then pop out the context saying "Success"
+          Timer(Duration(seconds: _sliderValue.toInt()), () {
             Navigator.of(context).pop();
           });
         });
