@@ -4,7 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:petfeederapp/camera.dart';
 import 'package:petfeederapp/settings.dart';
 import 'package:flutter/services.dart';
-// import 'package:esptouch_flutter/esptouch_flutter.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:platform_device_id/platform_device_id.dart';
 import 'adaptive.dart';
 import 'navigation.dart';
 import 'titlebar.dart';
@@ -36,11 +37,21 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final _formKey = GlobalKey<FormState>();
   bool _wifiPassVisibility = true;
   bool _userPassVisibility = true;
   TextEditingController userInputController = TextEditingController();
   TextEditingController wifiPasswordInputController = TextEditingController();
   TextEditingController userPasswordInputController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    UserInfo.getDeviceId();
+    setState(() {
+      userInputController.text = UserInfo.deviceId;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,93 +62,157 @@ class _MyAppState extends State<MyApp> {
         builder: ((context, snapshot) {
           final result = snapshot.data;
           if (UserInfo.isUserNew == true) {
+            // TODO: ESPTouch smart config, database connection, persistent config (Remember me?)
             return Scaffold(
                 resizeToAvoidBottomInset: false,
-                body: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Image(
-                        image: ResizeImage(AssetImage('assets/images/logo.png'),
-                            width: 128, height: 128)),
-                    Container(
-                      // color: Colors.yellow,
-                      // margin: const EdgeInsets.only(top),
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
-                      child: Text("Welcome to CleverFeeder!",
-                          // textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: const Color.fromARGB(255, 33, 31, 103),
-                              fontFamily: 'Poppins',
-                              fontSize: getadaptiveTextSize(context, 36),
-                              fontWeight: FontWeight.bold)),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
-                      child: TextField(
-                        controller: userInputController,
-                        key: const Key('username-input'),
-                        textInputAction: TextInputAction.done,
-                        keyboardType: TextInputType.visiblePassword,
-                        decoration: const InputDecoration(
-                            hintText: "Username", border: OutlineInputBorder()),
+                body: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(
+                            top: getadaptiveTextSize(context, 64),
+                            bottom: getadaptiveTextSize(context, 16)),
+                        child: SvgPicture.asset('assets/images/logo.svg',
+                            semanticsLabel: 'ClevTech Logo',
+                            color: const Color.fromARGB(255, 42, 39, 150),
+                            width: 128,
+                            height: 128),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
-                      child: TextField(
-                        controller: userPasswordInputController,
-                        key: const Key('user-password-input'),
-                        textInputAction: TextInputAction.done,
-                        keyboardType: TextInputType.visiblePassword,
-                        obscureText: _userPassVisibility,
-                        decoration: InputDecoration(
-                            hintText: "Password",
-                            helperText:
-                                "Temporary Account password for Database/MQTT",
-                            suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _userPassVisibility = !_userPassVisibility;
-                                  });
-                                },
-                                icon: _userPassVisibility
-                                    ? const Icon(Icons.visibility_off)
-                                    : const Icon(Icons.visibility)),
-                            border: const OutlineInputBorder()),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
+                        child: Text("Welcome to CleverFeeder!",
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                                color: const Color.fromARGB(255, 33, 31, 103),
+                                fontFamily: 'Poppins',
+                                fontSize: getadaptiveTextSize(context, 28),
+                                fontWeight: FontWeight.bold)),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 0),
-                      child: TextField(
-                        controller: wifiPasswordInputController,
-                        key: const Key('wifi-password-input'),
-                        textInputAction: TextInputAction.done,
-                        keyboardType: TextInputType.visiblePassword,
-                        obscureText: _wifiPassVisibility,
-                        decoration: InputDecoration(
-                            hintText: "Wi-Fi Password",
-                            helperText:
-                                "Wi-Fi Password of the Network you're Connected to",
-                            suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _wifiPassVisibility = !_wifiPassVisibility;
-                                  });
-                                },
-                                icon: _wifiPassVisibility
-                                    ? const Icon(Icons.visibility_off)
-                                    : const Icon(Icons.visibility)),
-                            border: const OutlineInputBorder()),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
+                        child: Text(
+                            "One Time Setup - Please fill out all the fields",
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                                color: const Color.fromARGB(255, 33, 31, 103),
+                                fontFamily: 'Poppins',
+                                fontSize: getadaptiveTextSize(context, 14),
+                                fontWeight: FontWeight.w300)),
                       ),
-                    ),
-                    MaterialButton(
-                      onPressed: () {
-                        UserInfo.isUserNew = false;
-                        setState(() {});
-                      },
-                      child: const Text("SUBMIT"),
-                    )
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter any Client Name';
+                            }
+                            return null;
+                          },
+                          controller: userInputController,
+                          // key: const Key('username-input'),
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.visiblePassword,
+                          decoration: const InputDecoration(
+                              hintText: "Client Name",
+                              border: OutlineInputBorder()),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter any Client Password';
+                            }
+                            return null;
+                          },
+                          controller: userPasswordInputController,
+                          // key: const Key('user-password-input'),
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.visiblePassword,
+                          obscureText: _userPassVisibility,
+                          decoration: InputDecoration(
+                              hintText: "Client Password",
+                              suffixIcon: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _userPassVisibility =
+                                          !_userPassVisibility;
+                                    });
+                                  },
+                                  icon: _userPassVisibility
+                                      ? const Icon(Icons.visibility_off)
+                                      : const Icon(Icons.visibility)),
+                              border: const OutlineInputBorder()),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(32, 0, 32, 0),
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter the Wi-Fi password for your network';
+                            }
+                            return null;
+                          },
+                          controller: wifiPasswordInputController,
+                          // key: const Key('wifi-password-input'),
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.visiblePassword,
+                          obscureText: _wifiPassVisibility,
+                          decoration: InputDecoration(
+                              hintText: "Wi-Fi Password",
+                              helperText:
+                                  "Wi-Fi Password of the Network you're Connected to",
+                              suffixIcon: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _wifiPassVisibility =
+                                          !_wifiPassVisibility;
+                                    });
+                                  },
+                                  icon: _wifiPassVisibility
+                                      ? const Icon(Icons.visibility_off)
+                                      : const Icon(Icons.visibility)),
+                              border: const OutlineInputBorder()),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(32),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Validate returns true if the form is valid, or false otherwise.
+                            if (_formKey.currentState!.validate()) {
+                              // If the form is valid, display a snackbar. In the real world,
+                              // you'd often call a server or save the information in a database.
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Processing Data')),
+                              );
+                            }
+                          },
+                          // child: const Text('CONTINUE'),
+
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 243, 243, 243),
+                            padding: const EdgeInsets.only(
+                                left: 32, right: 32, top: 16, bottom: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: Text("CONTINUE",
+                              style: TextStyle(
+                                  color: const Color.fromARGB(255, 33, 31, 103),
+                                  fontFamily: 'Poppins',
+                                  fontSize: getadaptiveTextSize(context, 16),
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ));
           } else {
             if (result == ConnectivityResult.none || result == null) {
@@ -224,23 +299,28 @@ class NoInternetConnection extends StatelessWidget {
 
 class UserInfo {
   static bool isUserNew = true;
-  late String _name;
-  late String _password;
-  late String _wifiPassword;
-
-  set name(String value) {
-    _name = value;
+  static String deviceId = "Unknown-Client";
+  static void getDeviceId() async {
+    deviceId = (await PlatformDeviceId.getDeviceId)!;
   }
+  // late String _name;
 
-  set password(String value) {
-    _password = value;
-  }
+  // late String _password;
+  // late String _wifiPassword;
 
-  set wifiPassword(String value) {
-    _wifiPassword = value;
-  }
+  // set name(String value) {
+  //   _name = value;
+  // }
 
-  String get name => _name;
-  String get password => _password;
-  String get wifiPassword => _wifiPassword;
+  // set password(String value) {
+  //   _password = value;
+  // }
+
+  // set wifiPassword(String value) {
+  //   _wifiPassword = value;
+  // }
+
+  // String get name => _name;
+  // String get password => _password;
+  // String get wifiPassword => _wifiPassword;
 }
