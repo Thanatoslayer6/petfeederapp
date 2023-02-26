@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  platform_device_id_linux
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
