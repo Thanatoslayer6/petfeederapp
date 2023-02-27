@@ -9,10 +9,12 @@ class MQTT {
   static MqttServerClient client =
       MqttServerClient(dotenv.env['MQTT_SERVER']!, '');
   static bool isConnected = false;
-  static String clientId = "ESP32-${const Uuid().v4()}";
+  // static String clientId = "ESP32-${const Uuid().v4()}";
+  static String? productId;
 
-  static connectToBroker() async {
-    print("Connecting to MQTT Broker");
+  static connectToBroker(String? id) async {
+    productId = id; // Assign productId
+    print("Connecting to MQTT Broker using id: $productId");
     ByteData letsEncryptCA =
         await rootBundle.load('assets/certs/lets-encrypt-r3.pem');
     SecurityContext context = SecurityContext.defaultContext;
@@ -25,7 +27,7 @@ class MQTT {
     client.secure = true;
     // Authenticate with username and password, also use the generated clientid
     final MqttConnectMessage connMess = MqttConnectMessage()
-        .withClientIdentifier(clientId)
+        .withClientIdentifier(productId as String)
         .startClean()
         .authenticateAs(dotenv.env['MQTT_USER'], dotenv.env['MQTT_PASS']);
     client.connectionMessage = connMess;
