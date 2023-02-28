@@ -239,11 +239,15 @@ class _MyAppState extends State<MyApp> {
                                     barrierDismissible:
                                         true, // Set to true for now...
                                     builder: (context) =>
-                                        ConnectingDialog()).then((value) {
+                                        const ConnectingDialog()).then((value) {
                                   setState(() {});
-                                  print(
-                                      "The dialog returned a value of: $value");
-                                  if (value == 1) {
+                                  if (value == -2) {
+                                    // MQTT CONNECTION FAIL
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Failed to connect to MQTT broker")));
+                                  } else if (value == 1) {
                                     // WIFI AUTH FAIL
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
@@ -372,82 +376,59 @@ class UserInfo {
   static String? productId;
   static String? devicePassword;
   static String? wifiPassword;
+
+  static int MQTTAuthenticationStatus = -3;
+  static int WifiAuthenticationStatus = 0;
+  static int ProductAuthenticationStatus = 3;
+  static bool isSubscribedToAuthTopic = false;
 }
 
 // 0 - Loading
 // 1 - Fail
 // 2 - Success
-// Future<int> espSmartConfig() async {
-//   final info = NetworkInfo();
-//   var temp = await info.getWifiName();
-//   var wifiName = temp?.substring(1, temp.length - 1);
-//   var wifiBSSID = await info.getWifiBSSID();
-//   int didWifiConnect = 0; // Loading
-//   Timer timeout = Timer(const Duration(seconds: 15), () {
-//     didWifiConnect = 1; // Means fail....
-//   });
-
-//   final provisioner = Provisioner.espTouchV2();
-//   provisioner.listen((response) {
-//     print("$response has been connected to WiFi!");
-//     didWifiConnect = 2; // Success
-//     timeout.cancel(); // Cancel the timer, no need to wait
-//   });
-//   // Send in the password as well as the client identifier so that the MQTT broker is specified
-//   await provisioner.start(ProvisioningRequest.fromStrings(
-//     ssid: wifiName as String,
-//     bssid: wifiBSSID as String,
-//     password: UserInfo.wifiPassword,
-//   ));
-
-//   provisioner.stop();
-//   print("Returning $didWifiConnect (fail = 1, success = 2) now!!!");
-//   return didWifiConnect;
-// }
-
 Future<int> espSmartConfig() async {
   final info = NetworkInfo();
   var temp = await info.getWifiName();
   var wifiName = temp?.substring(1, temp.length - 1);
   var wifiBSSID = await info.getWifiBSSID();
   int didWifiConnect = 0; // Loading
-  Completer completer =
-      Completer(); // Create a completer to wait for the listen method
-
-  Timer timeout = Timer(const Duration(seconds: 15), () {
-    if (!completer.isCompleted) {
-      // Check if the completer has already completed
-      didWifiConnect = 1; // Means fail....
-      completer.complete();
-    }
-  });
 
   final provisioner = Provisioner.espTouchV2();
   provisioner.listen((response) {
     print("$response has been connected to WiFi!");
     didWifiConnect = 2; // Success
-    timeout.cancel();
-    // completer.complete();
     provisioner.stop();
-    /*
-    if (!completer.isCompleted) {
-      // Check if the completer has already completed
-      timeout.cancel(); // Cancel the timer, no need to wait
-      completer.complete();
-    }
-    */
   });
 
-  // Send in the password as well as the client identifier so that the MQTT broker is specified
-  await provisioner.start(ProvisioningRequest.fromStrings(
-    ssid: wifiName as String,
-    bssid: wifiBSSID as String,
-    password: UserInfo.wifiPassword,
-  ));
+  try {
+    // Send in the password as well as the client identifier so that the MQTT broker is specified
+    await provisioner.start(ProvisioningRequest.fromStrings(
+      ssid: wifiName as String,
+      bssid: wifiBSSID as String,
+      password: UserInfo.wifiPassword,
+    ));
+  } catch (e) {
+    didWifiConnect = 1;
+    provisioner.stop();
+    print(e);
+  }
 
-  // provisioner.stop();
+  /*
+  while (provisioner.running) {
+    await Future.delayed(const Duration(seconds: 10));
+    print("Stopping now, nothing happened in the past 10 seconds");
+    didWifiConnect = 1;
+    provisioner.stop();
+  }
+  */
 
-  await completer.future; // Wait for the listen method to complete
+  await Future.delayed(const Duration(seconds: 10));
+  if (didWifiConnect == 0) {
+    print("Stopping now, nothing happened in the past 10 seconds");
+    didWifiConnect = 1;
+    provisioner.stop();
+  }
+
   print("Returning $didWifiConnect (fail = 1, success = 2) now!!!");
   return didWifiConnect;
 }
@@ -458,10 +439,12 @@ Future<int> espSmartConfig() async {
 Future<int> validateProductCredentials() async {
   late StreamSubscription subscription;
   int isProductValid = 3; // Loading
-
-  // Listen for MQTT messages
-  MQTT.client
-      .subscribe("auth/${UserInfo.productId}/status", MqttQos.exactlyOnce);
+  // Listen for MQTT messages check condition first if already subscribed
+  if (UserInfo.isSubscribedToAuthTopic == false) {
+    MQTT.client
+        .subscribe("auth/${UserInfo.productId}/status", MqttQos.exactlyOnce);
+    UserInfo.isSubscribedToAuthTopic = true;
+  }
   subscription =
       MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
     final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
@@ -482,8 +465,8 @@ Future<int> validateProductCredentials() async {
     'device_password': UserInfo.devicePassword
   };
   String payload = json.encode(credentials);
-  print(payload);
-  MQTT.publish("auth/${UserInfo.productId}", payload);
+  print(payload.toString());
+  MQTT.publish("auth/${UserInfo.productId}", payload.toString());
   // END PUBLISH DATA
 
   // Wait for about 10 seconds or so...
@@ -492,7 +475,11 @@ Future<int> validateProductCredentials() async {
     isProductValid = 4; // Fail
   }
 
-  MQTT.client.unsubscribe("auth/${UserInfo.productId}/status");
+  // Unsub from topic depending on the state of boolean variable
+  if (UserInfo.isSubscribedToAuthTopic == true) {
+    MQTT.client.unsubscribe("auth/${UserInfo.productId}/status");
+    UserInfo.isSubscribedToAuthTopic = false;
+  }
   subscription.cancel();
   print("Returning $isProductValid (fail = 4, success = 5) now!!!");
   return isProductValid;
@@ -506,113 +493,133 @@ class ConnectingDialog extends StatefulWidget {
 }
 
 class _ConnectingDialogState extends State<ConnectingDialog> {
-  Timer? _timeoutTimer;
-  bool isAuthenticated = false;
-  bool didAuthenticationFail = false;
-  // NOTE:
+  // NOTE: Remember the status
+  // MQTT
+  // -3 - Loading
+  // -2 - Fail
+  // -1 - Success
   // WIFI
   // 0 - Loading
   // 1 - Fail
-  // 2- Success
+  // 2 - Success
   // PRODUCT
   // 3 - Loading
   // 4 - Fail
   // 5 - Success
-  // ignore: non_constant_identifier_names
-  int WifiAuthenticationStatus = 0;
-  // ignore: non_constant_identifier_names
-  int ProductAuthenticationStatus = 0;
 
-  void deviceWifiConfiguration() async {
-    int status = await espSmartConfig();
-    setState(() {
-      WifiAuthenticationStatus = status;
-    });
-    if (WifiAuthenticationStatus == 1) {
-      Timer(const Duration(seconds: 2), () {
-        Navigator.of(context)
-            .pop(1); // Return '1' which means failure to connect via wifi
+  Future<void> mqttConfiguration() async {
+    // Check if it's still not connected to the broker
+    if (MQTT.isConnected == false) {
+      bool status = await MQTT.connectToBroker(UserInfo.productId);
+      setState(() {
+        if (status == true) {
+          UserInfo.MQTTAuthenticationStatus = -1; // Successful connection
+        } else {
+          UserInfo.MQTTAuthenticationStatus = -2; // Failed to connect
+          Timer(const Duration(seconds: 3), () {
+            Navigator.of(context).pop(
+                -2); // Return '-2' which means failure to connect to MQTT broker
+          });
+        }
       });
     }
     return;
   }
 
-  void productConfiguration() async {
-    int status = await validateProductCredentials();
-    setState(() {
-      ProductAuthenticationStatus = status;
-    });
-    if (ProductAuthenticationStatus == 4) {
-      Timer(const Duration(seconds: 2), () {
+  Future<void> deviceWifiConfiguration() async {
+    if (UserInfo.WifiAuthenticationStatus != 2) {
+      print(UserInfo.wifiPassword);
+      int status = await espSmartConfig();
+      setState(() {
+        UserInfo.WifiAuthenticationStatus = status;
+      });
+    }
+    if (UserInfo.WifiAuthenticationStatus == 1) {
+      // UserInfo.WifiAuthenticationStatus = 0; // Reset back to loading
+      Timer(const Duration(seconds: 3), () {
         Navigator.of(context)
-            .pop(4); // Return '4' which means failure to validate credentials
+            .pop(1); // Return '1' which means failure to connect via wifi
+        UserInfo.WifiAuthenticationStatus = 0; // Reset back to loading
       });
     }
     return;
+  }
+
+  Future<void> productConfiguration() async {
+    if (UserInfo.ProductAuthenticationStatus != 5) {
+      int status = await validateProductCredentials();
+      setState(() {
+        UserInfo.ProductAuthenticationStatus = status;
+      });
+    }
+    if (UserInfo.ProductAuthenticationStatus == 4) {
+      Timer(const Duration(seconds: 3), () {
+        Navigator.of(context)
+            .pop(4); // Return '4' which means failure to validate credentials
+        UserInfo.ProductAuthenticationStatus = 3; // Reset back to loading
+      });
+    }
+    return;
+  }
+
+  initNecessaryMethods() async {
+    await deviceWifiConfiguration();
+    await mqttConfiguration();
+    await productConfiguration();
+    // Connect device to WiFi
+    // await deviceWifiConfiguration();
+    // print("DONE WIFI FUNCTION");
+    // if (UserInfo.WifiAuthenticationStatus == 2) {
+    //   // Validate credentials if and only if the previous function is successful
+    //   await productConfiguration();
+    // }
+
+    // await mqttConfiguration();
+    // print("DONE MQTT FUNCTION");
+    // if (UserInfo.MQTTAuthenticationStatus == -1) {}
+
+    // print("DONE PRODUCT FUNCTION");
+    // // Maybe exit now?
+    // if (UserInfo.ProductAuthenticationStatus == 5) {
+    //   print("SUCCESSFULLY AUTHENTICATED! DO SOMEHTING HERE!");
+    // }
   }
 
   @override
   void initState() {
+    super.initState();
+    initNecessaryMethods();
+    /*
     // Connect to the MQTT Broker
-    if (MQTT.isConnected == false) {
-      print("I'm here and I need to connect bru");
-      MQTT.connectToBroker(UserInfo.productId).then((value) {
-        print("wutttt $value");
-        deviceWifiConfiguration();
-        // productConfiguration();
-        return;
-      });
-      print("Where am i now?");
-    }
-    print("Nandito check");
-    // deviceWifiConfiguration();
-    // productConfiguration();
-    // ESPSmartConfig().then((status) {
-    //   setState(() {
-    //     WifiAuthenticationStatus = status;
-    //   });
-    //   print("Wifi auth status is: $WifiAuthenticationStatus");
-    //   return;
-    // });
+    mqttConfiguration().then((_) {
+      print("DONE MQTT FUNCTION");
+      if (UserInfo.MQTTAuthenticationStatus == -1) {
+        // Connect device to WiFi
+        deviceWifiConfiguration().then((_) {
+          print("DONE WIFI FUNCTION");
 
-    // if (WifiAuthenticationStatus == 1) {
-    //   print("I'm here right?");
-    //   Navigator.of(context).pop();
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //       SnackBar(content: const Text("Failed to configure WiFi network")));
-    // }
-    // _wifiConfiguration();
-    // Future.wait(_wifiConfiguration());
-    // Device failed to cnnect to WiFi network
-    // connectESPDevice(); // First we connect the device to wifi
-    // WifiAuthenticationStatus =
-    // ProductAuthenticationStatus = await ValidateProduct();
-    // Listen for MQTT messages
-    // MQTT.client.subscribe("feed_duration_response", MqttQos.exactlyOnce);
-    // subscription =
-    //     MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-    //   final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
-    //   final String message =
-    //       MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-
-    if (didAuthenticationFail) {
-      // Wait for 3 seconds then inform user
-      Timer(const Duration(seconds: 3), () {
-        Navigator.of(context).pop();
-      });
-    }
+          if (UserInfo.WifiAuthenticationStatus == 2) {
+            // Validate credentials if and only if the previous function is successful
+            productConfiguration().then((_) {
+              print("DONE PRODUCT FUNCTION");
+              // Maybe exit now?
+              if (UserInfo.ProductAuthenticationStatus == 5) {
+                print("SUCCESSFULLY AUTHENTICATED! DO SOMEHTING HERE!");
+              }
+            });
+          }
+        });
+      }
+    });
+    */
   }
 
   @override
   void dispose() {
-    if (_timeoutTimer != null && _timeoutTimer!.isActive) {
-      _timeoutTimer!.cancel();
-    }
-    print("Closing the dialog nowwwwwwwwww");
+    print("~~~~~~~ CLOSING THE DIALOG NOW ~~~~~~~~");
     // Unsubscribe from MQTT messages
-    MQTT.client.unsubscribe("auth/${UserInfo.productId}/status");
+    // MQTT.client.unsubscribe("auth/${UserInfo.productId}/status");
     // subscription.cancel();
-
     super.dispose();
   }
 
@@ -628,48 +635,81 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(
+                  height: 32,
+                  width: 32,
+                  child: (UserInfo.MQTTAuthenticationStatus == -3) // Loading
+                      ? const CircularProgressIndicator(
+                          backgroundColor: Colors.green,
+                        )
+                      : (UserInfo.MQTTAuthenticationStatus == -2) // Failed
+                          ? const Icon(Icons.warning_rounded) // Fail
+                          : const Icon(
+                              Icons.check_rounded,
+                              size: 32,
+                            )),
+              Container(
+                  padding: const EdgeInsets.only(left: 16, bottom: 16, top: 16),
+                  child:
+                      Text((UserInfo.MQTTAuthenticationStatus == -3) // Loading
+                          ? "Connecting to MQTT Broker"
+                          : (UserInfo.MQTTAuthenticationStatus == -2) // Failed
+                              ? "Failed to connect!"
+                              : "Connected to MQTT Broker")),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
                 height: 32,
                 width: 32,
-                child: (WifiAuthenticationStatus == 2)
-                    ? Icon(
-                        Icons.check_rounded,
-                        size: 32,
+                child: (UserInfo.WifiAuthenticationStatus == 0) // Loading
+                    ? const CircularProgressIndicator(
+                        backgroundColor: Colors.green,
                       )
-                    : (WifiAuthenticationStatus == 0)
-                        ? CircularProgressIndicator(
-                            backgroundColor: Colors.green,
-                          )
-                        : Icon(Icons.warning_rounded),
+                    : (UserInfo.WifiAuthenticationStatus == 1) // Fail
+                        ? const Icon(Icons.warning_rounded)
+                        : const Icon(
+                            Icons.check_rounded,
+                            size: 32,
+                          ),
               ),
               Container(
-                  padding: EdgeInsets.only(left: 16, bottom: 16, top: 16),
+                  padding: const EdgeInsets.only(left: 16, bottom: 16, top: 16),
                   child: Text(
-                    isAuthenticated
-                        ? "Device connected"
-                        : "Sending WiFi credentials",
+                    (UserInfo.WifiAuthenticationStatus == 0)
+                        ? "Sending WiFi credentials"
+                        : (UserInfo.WifiAuthenticationStatus == 1)
+                            ? "Failed to connect!"
+                            : "Device connected",
                   )),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              isAuthenticated
-                  ? Icon(
-                      Icons.check_rounded,
-                      size: 32,
-                    )
-                  : SizedBox(
-                      child: CircularProgressIndicator(
+              SizedBox(
+                height: 32,
+                width: 32,
+                child: (UserInfo.ProductAuthenticationStatus == 3) // Loading
+                    ? const CircularProgressIndicator(
                         backgroundColor: Colors.green,
-                      ),
-                      height: 32,
-                      width: 32,
-                    ),
+                      )
+                    : (UserInfo.ProductAuthenticationStatus == 4) // Fail
+                        ? const Icon(Icons.warning_rounded)
+                        : const Icon(
+                            Icons.check_rounded,
+                            size: 32,
+                          ),
+              ),
               Container(
-                  // color: Colors.yellow,
-                  padding: EdgeInsets.only(left: 16, bottom: 16, top: 16),
+                  padding: const EdgeInsets.only(left: 16, bottom: 16, top: 16),
                   child: Text(
-                    "Validating product info",
+                    (UserInfo.ProductAuthenticationStatus == 3) // Loading
+                        ? "Validating product id"
+                        : (UserInfo.ProductAuthenticationStatus == 4)
+                            ? "Failed to validate device!"
+                            : "Device validated",
                   )),
             ],
           ),
