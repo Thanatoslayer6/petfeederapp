@@ -6,12 +6,12 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:petfeederapp/main.dart';
 import 'package:petfeederapp/mqtt.dart';
 import 'adaptive.dart';
 import 'time.dart';
 import 'schedule.dart';
 import 'quotes.dart';
+import 'preferences.dart';
 
 class Homepage extends StatefulWidget {
   static bool wentToSchedule = false;

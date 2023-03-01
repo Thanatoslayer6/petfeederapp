@@ -49,6 +49,7 @@ dependencies:
   flutter_svg: ^1.1.6
   network_info_plus: ^3.0.2
   esp_smartconfig: ^1.1.11
+  shared_preferences: ^2.0.18
 
 dev_dependencies:
   flutter_test:

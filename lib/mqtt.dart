@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:uuid/uuid.dart';
 
 class MQTT {
   static MqttServerClient client =
@@ -13,7 +12,7 @@ class MQTT {
   static String? productId;
 
   static connectToBroker(String? id) async {
-    productId = id; // Assign productId
+    productId = id ?? "UnknownClientUser"; // Assign productId
     print("Connecting to MQTT Broker using id: $productId");
     ByteData letsEncryptCA =
         await rootBundle.load('assets/certs/lets-encrypt-r3.pem');
