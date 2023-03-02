@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:petfeederapp/mqtt.dart';
+
+import 'preferences.dart';
 // import 'package:image/image.dart' as img;
 
 class Camera extends StatefulWidget {
@@ -19,14 +21,16 @@ class _CameraState extends State<Camera> {
     super.initState();
     // Subscribe to the needed topic
     // In this case the stream 'client.updates' will only provide the image data
-    MQTT.publish("toggle_stream", "on");
-    MQTT.client.subscribe("stream", MqttQos.atMostOnce);
+    if (MQTT.isConnected) {
+      MQTT.publish("${UserInfo.productId}/toggle_stream", "on");
+      MQTT.client.subscribe("${UserInfo.productId}/stream", MqttQos.atMostOnce);
+    }
   }
 
   @override
   void dispose() {
-    MQTT.client.unsubscribe("stream");
-    MQTT.publish("toggle_stream", "off");
+    MQTT.client.unsubscribe("${UserInfo.productId}/stream");
+    MQTT.publish("${UserInfo.productId}/toggle_stream", "off");
     super.dispose();
   }
 

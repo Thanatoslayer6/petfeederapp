@@ -46,6 +46,9 @@ class MQTT {
   static void publish(String topic, String message) {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
     builder.addString(message);
-    client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+    if (MQTT.isConnected) {
+      client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+    }
+    return;
   }
 }

@@ -61,6 +61,7 @@ class _HomepageState extends State<Homepage> {
       String payload = json.encode(minifiedDateTime);
       // If payload is '[]' this means that user is in manual mode...
       // else he/she is on automation
+      // TODO: DO this.,...
       MQTT.publish("schedule", payload);
       Homepage.wentToSchedule = false;
     }
@@ -219,7 +220,12 @@ class _HomepageState extends State<Homepage> {
         padding: EdgeInsets.all(getadaptiveTextSize(context, 8)),
         width: MediaQuery.of(context).size.width,
         child: MaterialButton(
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => EnableUVLightDialog());
+            },
             padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
                 getadaptiveTextSize(context, 4)),
             shape:
@@ -512,14 +518,16 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
     super.initState();
     // Listen for MQTT messages
     // Subscribe to the needed topic
-    MQTT.client.subscribe("feed_duration_response", MqttQos.exactlyOnce);
+    MQTT.client.subscribe(
+        "${UserInfo.productId}/feed_duration_response", MqttQos.exactlyOnce);
     subscription =
         MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
       final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
       final String message =
           MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
-      if (c[0].topic == "feed_duration_response" && message == "true") {
+      if (c[0].topic == "${UserInfo.productId}/feed_duration_response" &&
+          message == "true") {
         setState(() {
           failed = false;
           done = true;
@@ -539,7 +547,7 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
       _timeoutTimer!.cancel();
     }
     // Unsubscribe from MQTT messages
-    MQTT.client.unsubscribe("feed_duration_response");
+    MQTT.client.unsubscribe("${UserInfo.productId}/feed_duration_response");
     subscription.cancel();
     super.dispose();
   }
@@ -578,8 +586,8 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
             child: Text("Feed"),
             onPressed: () {
               // Handle MQTT here
-              MQTT.publish(
-                  "feed_duration", (_sliderValue.toInt() * 1000).toString());
+              MQTT.publish("${UserInfo.productId}/feed_duration",
+                  (_sliderValue.toInt() * 1000).toString());
               setState(() {
                 starting = false;
               });
@@ -615,6 +623,144 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
     // FAILS
     return AlertDialog(
       content: Text("Failed to dispense food"),
+      actions: [
+        TextButton(
+          child: Text("Ok"),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class EnableUVLightDialog extends StatefulWidget {
+  const EnableUVLightDialog({super.key});
+
+  @override
+  State<EnableUVLightDialog> createState() => _EnableUVLightDialogState();
+}
+
+class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
+  // TODO: BEAUTIFY
+  late StreamSubscription subscription;
+  double _sliderValue = 1.0;
+  bool starting = true;
+  bool failed = false;
+  bool done = false;
+  Timer? _timeoutTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for MQTT messages
+    // Subscribe to the needed topic
+    MQTT.client.subscribe(
+        "${UserInfo.productId}/uvlight_duration_response", MqttQos.exactlyOnce);
+    subscription =
+        MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
+      final String message =
+          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+      if (c[0].topic == "${UserInfo.productId}/uvlight_duration_response" &&
+          message == "true") {
+        setState(() {
+          failed = false;
+          done = true;
+          // Close the dialog
+          // Wait for the dispense to finish then pop out the context saying "Success"
+          Timer(Duration(seconds: _sliderValue.toInt()), () {
+            Navigator.of(context).pop();
+          });
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    if (_timeoutTimer != null && _timeoutTimer!.isActive) {
+      _timeoutTimer!.cancel();
+    }
+    // Unsubscribe from MQTT messages
+    MQTT.client.unsubscribe("${UserInfo.productId}/uvlight_duration_response");
+    subscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (starting == true && failed == false) {
+      return AlertDialog(
+        title: Text("Turn on UV Light"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text("Duration (in seconds):"),
+            Slider(
+              value: _sliderValue,
+              min: 1.0,
+              max: 10.0,
+              divisions: 9,
+              onChanged: (newValue) {
+                setState(() {
+                  _sliderValue = newValue;
+                });
+              },
+            ),
+            Text("$_sliderValue"),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text("Cancel"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text("Enable"),
+            onPressed: () {
+              // Handle MQTT here
+              MQTT.publish("${UserInfo.productId}/uvlight_duration",
+                  (_sliderValue.toInt() * 1000).toString());
+              setState(() {
+                starting = false;
+              });
+              _timeoutTimer = Timer(Duration(seconds: 15), () {
+                setState(() {
+                  failed = true;
+                });
+              });
+            },
+          ),
+        ],
+      );
+    } else if (starting == false && failed == false) {
+      if (done == false) {
+        return AlertDialog(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: const [
+              CircularProgressIndicator(),
+              Text("Waiting for response"),
+            ],
+          ),
+        );
+      } else if (done == true) {
+        // Show success
+        return AlertDialog(
+          content: Text("Successfully enabled UV light"),
+        );
+      }
+    }
+
+    // FAILS
+    return AlertDialog(
+      content: Text("Failed to enable UV light"),
       actions: [
         TextButton(
           child: Text("Ok"),
