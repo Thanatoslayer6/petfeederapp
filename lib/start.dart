@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:uuid/uuid.dart';
 import 'adaptive.dart';
 import 'mqtt.dart';
 import 'preferences.dart';
@@ -353,7 +354,8 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
   Future<void> mqttConfiguration() async {
     // Check if it's still not connected to the broker
     if (MQTT.isConnected == false) {
-      bool status = await MQTT.connectToBroker("${UserInfo.productId}-app");
+      bool status = await MQTT
+          .connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
       setState(() {
         if (status == true) {
           UserInfo.MQTTAuthenticationStatus = -1; // Successful connection

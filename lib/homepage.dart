@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:uuid/uuid.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -39,8 +39,7 @@ class _HomepageState extends State<Homepage> {
     }
     // Connect to the MQTT Broker
     if (MQTT.isConnected == false) {
-      MQTT.connectToBroker(UserInfo.productId);
-      // print(MQTT.clientId);
+      MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
     }
   }
 
@@ -61,8 +60,7 @@ class _HomepageState extends State<Homepage> {
       String payload = json.encode(minifiedDateTime);
       // If payload is '[]' this means that user is in manual mode...
       // else he/she is on automation
-      // TODO: DO this.,...
-      MQTT.publish("schedule", payload);
+      MQTT.publish("${UserInfo.productId}/schedule", payload);
       Homepage.wentToSchedule = false;
     }
 
@@ -572,7 +570,9 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
                 });
               },
             ),
-            Text("$_sliderValue"),
+            Text(_sliderValue == 1.0
+                ? "${_sliderValue.toInt()} second"
+                : "${_sliderValue.toInt()} seconds"),
           ],
         ),
         actions: <Widget>[
@@ -698,19 +698,21 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text("Duration (in seconds):"),
+            Text("Duration (in minutes):"),
             Slider(
               value: _sliderValue,
               min: 1.0,
-              max: 10.0,
-              divisions: 9,
+              max: 30.0,
+              divisions: 29,
               onChanged: (newValue) {
                 setState(() {
                   _sliderValue = newValue;
                 });
               },
             ),
-            Text("$_sliderValue"),
+            Text(_sliderValue == 1.0
+                ? "${_sliderValue.toInt()} minute"
+                : "${_sliderValue.toInt()} minutes"),
           ],
         ),
         actions: <Widget>[
