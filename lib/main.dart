@@ -1,5 +1,7 @@
 // import 'dart:io';
 
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -28,9 +30,14 @@ Future main() async {
   DateTimeService.init();
   // Load environment variables
   await dotenv.load(fileName: "assets/.env");
-  // Get random identifier if user is just starting up...
+  // Request location permissions for smartconfig
+  locationPermissionHandler();
   // Then call runApp() as normal
   runApp(const MyApp());
+}
+
+locationPermissionHandler() async {
+  if (await Permission.location)
 }
 
 class MyApp extends StatefulWidget {

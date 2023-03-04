@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
@@ -25,9 +24,6 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  int activeScheduleRotationIndex = 0;
-  // bool isQuoteAlreadyAnimated = false;
-
   @override
   void initState() {
     super.initState();
@@ -72,11 +68,8 @@ class _HomepageState extends State<Homepage> {
           modeIdentifierWidget(context, true), // Automatic Mode ? Manual Mode
           headlineAutomaticWidget(context), // Feeding Time (TIME)
           subHeadlineWidget(
-              context,
-              Homepage.activeSchedules[activeScheduleRotationIndex]
-                  .data), // HH:MM a (TIME)
-          countdownWidget(
-              Homepage.activeSchedules[activeScheduleRotationIndex].data),
+              context, Homepage.activeSchedules[0].data), // HH:MM a (TIME)
+          countdownWidget(Homepage.activeSchedules[0].data),
           // BUTTONS BELOW,
           // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           setScheduleButtonWidget(), // Set schedule

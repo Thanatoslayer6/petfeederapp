@@ -23,13 +23,14 @@ class _SchedulePageState extends State<SchedulePage> {
   // Set up schedule controller
   MultiSelectController scheduleController = MultiSelectController();
   bool newUserWithNoSchedules = false;
-  // String generalScheduleDatabaseId = "";
 
   @override
   void dispose() {
     super.dispose();
-    // updateScheduleToDatabase();
-    updateSchedulesToDatabase();
+    if (Schedule.didModifySchedule == true) {
+      updateSchedulesToDatabase();
+      Schedule.didModifySchedule = false;
+    }
   }
 
   @override
@@ -244,6 +245,7 @@ class _SchedulePageState extends State<SchedulePage> {
     );
 
     if (pickedTime != null) {
+      Schedule.didModifySchedule = true;
       // Edit current time
       setState(() {
         Schedule.listOfTimes[indexOfItemToBeEdited].data = DateTime(
@@ -252,8 +254,6 @@ class _SchedulePageState extends State<SchedulePage> {
             DateTimeService.timeNow.day,
             pickedTime.hour,
             pickedTime.minute);
-        // updateScheduleItemToDatabase(
-        //     Schedule.listOfTimes[indexOfItemToBeEdited].databaseId);
       });
     } else {
       print("User cancelled editing time");
@@ -261,6 +261,7 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   void deleteSelectedItems() {
+    Schedule.didModifySchedule = true;
     var list = scheduleController.selectedIndexes;
     // Reoder from biggest number, so it wont error
     list.sort((b, a) => a.compareTo(b));
@@ -268,19 +269,6 @@ class _SchedulePageState extends State<SchedulePage> {
     // TODO: DOOOOOOOOOOOOOOOOOOOOOOO THISSSSSSSSSSSSSSSSSSSSSSSSSSSS THEN PROCEED TO HISTORY LOGS QUICKLY
     list.forEach((element) async {
       Schedule.listOfTimes.removeAt(element);
-      print(
-          "THE LENGTH IS: ${Schedule.listOfTimes.length}, while element is: $element");
-      String requestURL =
-          "${dotenv.env['CRUD_API']!}/api/schedule/client/${Schedule.listOfTimes[element].databaseId}";
-      var response = await http.delete(Uri.parse(requestURL));
-      if (response.statusCode == 200) {
-        print(response);
-        print(
-            "Successfully deleted item schedule: ${Schedule.listOfTimes[element].databaseId}");
-      } else {
-        print(
-            "Failed to delete item schedule: ${Schedule.listOfTimes[element].databaseId}");
-      }
     });
     setState(() {
       scheduleController.set(Schedule.listOfTimes.length);
@@ -415,6 +403,7 @@ class _SchedulePageState extends State<SchedulePage> {
                                       const Color.fromARGB(255, 33, 31, 103),
                                   value: Schedule.listOfTimes[index].isActive,
                                   onChanged: (value) {
+                                    Schedule.didModifySchedule = true;
                                     setState(() {
                                       Schedule.listOfTimes[index].isActive =
                                           value;
@@ -480,11 +469,10 @@ class _SchedulePageState extends State<SchedulePage> {
                 // We display the last tapped value in the example app
                 onChanged: (int day) {
                   // print(printIntAsDay(day));
+                  Schedule.didModifySchedule = true;
                   setState(() {
-                    print("Testingssssssss");
                     Schedule.listOfTimes[index].weekDaysIndex[day % 7] =
                         !Schedule.listOfTimes[index].weekDaysIndex[day % 7];
-                    // updateScheduleItemToDatabase(Schedule.listOfTimes[index]);
                   });
                 },
                 values: Schedule.listOfTimes[index].weekDaysIndex,
@@ -523,6 +511,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       divisions: 9,
                       value: Schedule.listOfTimes[index].dispenserDuration,
                       onChanged: (newValue) {
+                        Schedule.didModifySchedule = true;
                         setState(() {
                           Schedule.listOfTimes[index].dispenserDuration =
                               newValue;
@@ -538,6 +527,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
 class Schedule {
   static bool didScheduleUpdate = true;
+  static bool didModifySchedule = false;
   static String generalScheduleDatabaseId = "";
   // Lists in dart have methods such as .add() and .remove()
   static List<ListItem<dynamic>> listOfTimes = [
