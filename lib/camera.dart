@@ -29,8 +29,10 @@ class _CameraState extends State<Camera> {
 
   @override
   void dispose() {
-    MQTT.client.unsubscribe("${UserInfo.productId}/stream");
-    MQTT.publish("${UserInfo.productId}/toggle_stream", "off");
+    if (MQTT.isConnected) {
+      MQTT.client.unsubscribe("${UserInfo.productId}/stream");
+      MQTT.publish("${UserInfo.productId}/toggle_stream", "off");
+    }
     super.dispose();
   }
 

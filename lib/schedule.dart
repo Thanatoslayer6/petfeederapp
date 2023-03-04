@@ -1,10 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'package:weekday_selector/weekday_selector.dart';
+import 'preferences.dart';
 import 'time.dart';
 import 'adaptive.dart';
 import 'packages/multi_select_item.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
@@ -16,11 +22,108 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> {
   // Set up schedule controller
   MultiSelectController scheduleController = MultiSelectController();
+  bool newUserWithNoSchedules = false;
+  // String generalScheduleDatabaseId = "";
+
+  @override
+  void dispose() {
+    super.dispose();
+    // updateScheduleToDatabase();
+    updateSchedulesToDatabase();
+  }
+
   @override
   void initState() {
     super.initState();
-    scheduleController.disableEditingWhenNoneSelected = true;
-    scheduleController.set(Schedule.listOfTimes.length);
+    // First we connect to the database, to check if there are entries
+    if (Schedule.listOfTimes.isEmpty || Schedule.didScheduleUpdate == true) {
+      // Reset the variables
+      Schedule.listOfTimes = []; // Just reassuring
+      Schedule.didScheduleUpdate = false;
+      getScheduleFromDatabase().then((_) {
+        scheduleController.disableEditingWhenNoneSelected = true;
+        scheduleController.set(Schedule.listOfTimes.length);
+        setState(() {});
+      });
+    }
+  }
+
+  updateSchedulesToDatabase() async {
+    // Also update the database information
+    List properList = [];
+    String requestURL =
+        "${dotenv.env['CRUD_API']!}/api/schedule/${Schedule.generalScheduleDatabaseId}";
+    for (var schedule in Schedule.listOfTimes) {
+      properList.add({
+        'hour': schedule.data.hour,
+        'minute': schedule.data.minute,
+        'enabled': schedule.isActive,
+        'weekDay': schedule.weekDaysIndex,
+        'feedDuration': schedule.dispenserDuration
+      });
+    }
+    // print(properList.toList());
+    var jsonBody =
+        json.encode({'client': UserInfo.productId, 'items': properList});
+
+    var response = await http.put(Uri.parse(requestURL),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonBody);
+    if (response.statusCode == 200) {
+      // Schedule.listOfTimes[i].
+      print("Successfully updated item: ${Schedule.generalScheduleDatabaseId}");
+    } else {
+      print("Failed to update item: ${Schedule.generalScheduleDatabaseId}");
+    }
+  }
+
+  getScheduleFromDatabase() async {
+    final String requestURL =
+        "${dotenv.env['CRUD_API']!}/api/schedule/client/${UserInfo.productId}";
+    var response = await http.get(Uri.parse(requestURL));
+
+    if (response.statusCode == 200) {
+      // If client exists in the database, set up the variables
+      var jsonResponse =
+          convert.jsonDecode(response.body) as Map<String, dynamic>;
+      print(jsonResponse);
+
+      if (jsonResponse['data'].length > 0) {
+        var jsonParsedData = jsonResponse['data'][0];
+        Schedule.generalScheduleDatabaseId = jsonParsedData['_id'];
+        print(jsonParsedData);
+        if (jsonParsedData.containsKey('items')) {
+          // There is stored data...
+          for (int i = 0; i < jsonParsedData['items'].length; i++) {
+            Schedule.listOfTimes.add(ListItem(DateTime(
+                DateTimeService.timeNow.year,
+                DateTimeService.timeNow.month,
+                DateTimeService.timeNow.day,
+                jsonParsedData['items'][i]['hour'],
+                jsonParsedData['items'][i]['minute'])));
+            // Set up its id (the one from we get from the database)
+            Schedule.listOfTimes[i].databaseId =
+                jsonParsedData['items'][i]['_id'];
+            // Set up dispenser duration
+            Schedule.listOfTimes[i].dispenserDuration =
+                (jsonParsedData['items'][i]['feedDuration']).toDouble();
+            Schedule.listOfTimes[i].weekDaysIndex =
+                List<bool>.from(jsonParsedData['items'][i]['weekDay']);
+          }
+        }
+        print(Schedule.listOfTimes.toList());
+        print(Schedule.listOfTimes.length);
+      } else {
+        // New user
+        print(
+            "User doesn't have stored items in database... will add on next add");
+        newUserWithNoSchedules = true;
+      }
+    } else {
+      return "Request failed with status: ${response.statusCode}";
+    }
   }
 
   @override
@@ -65,6 +168,8 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   void addTimeItem() async {
+    String requestURL = "";
+    String jsonBody = "";
     // Logic for setting schedule
     TimeOfDay? pickedTime = await showTimePicker(
       initialTime: TimeOfDay.now(),
@@ -73,13 +178,54 @@ class _SchedulePageState extends State<SchedulePage> {
 
     // Let the user pick a certain time first...
     if (pickedTime != null) {
-      // Add schedule
+      // Add schedule to front-end
       Schedule.listOfTimes.add(ListItem(DateTime(
           DateTimeService.timeNow.year,
           DateTimeService.timeNow.month,
           DateTimeService.timeNow.day,
           pickedTime.hour,
           pickedTime.minute)));
+      // Add schedule to back-end (database)
+      if (newUserWithNoSchedules == true) {
+        requestURL = "${dotenv.env['CRUD_API']!}/api/schedule/";
+        jsonBody = json.encode({
+          'client': UserInfo.productId,
+          'items': [
+            {
+              'hour': pickedTime.hour,
+              'minute': pickedTime.minute,
+              'enabled': false,
+              'weekDay': List.filled(7, true),
+              'feedDuration': 2
+            }
+          ]
+        });
+      } else {
+        requestURL =
+            "${dotenv.env['CRUD_API']!}/api/schedule/client/${UserInfo.productId}";
+        jsonBody = json.encode({
+          'hour': pickedTime.hour,
+          'minute': pickedTime.minute,
+          'enabled': false,
+          'weekDay': List.filled(7, true),
+          'feedDuration': 2
+        });
+        Schedule.didScheduleUpdate = true;
+      }
+
+      print(requestURL);
+
+      final response = await http.post(Uri.parse(requestURL),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonBody);
+
+      if (response.statusCode == 200) {
+        print("Successfully added item schedule on database");
+      } else {
+        print("Failed to add item schedule on database");
+      }
     } else {
       print("User cancelled");
     }
@@ -106,6 +252,8 @@ class _SchedulePageState extends State<SchedulePage> {
             DateTimeService.timeNow.day,
             pickedTime.hour,
             pickedTime.minute);
+        // updateScheduleItemToDatabase(
+        //     Schedule.listOfTimes[indexOfItemToBeEdited].databaseId);
       });
     } else {
       print("User cancelled editing time");
@@ -117,8 +265,22 @@ class _SchedulePageState extends State<SchedulePage> {
     // Reoder from biggest number, so it wont error
     list.sort((b, a) => a.compareTo(b));
     // ignore: avoid_function_literals_in_foreach_calls
-    list.forEach((element) {
+    // TODO: DOOOOOOOOOOOOOOOOOOOOOOO THISSSSSSSSSSSSSSSSSSSSSSSSSSSS THEN PROCEED TO HISTORY LOGS QUICKLY
+    list.forEach((element) async {
       Schedule.listOfTimes.removeAt(element);
+      print(
+          "THE LENGTH IS: ${Schedule.listOfTimes.length}, while element is: $element");
+      String requestURL =
+          "${dotenv.env['CRUD_API']!}/api/schedule/client/${Schedule.listOfTimes[element].databaseId}";
+      var response = await http.delete(Uri.parse(requestURL));
+      if (response.statusCode == 200) {
+        print(response);
+        print(
+            "Successfully deleted item schedule: ${Schedule.listOfTimes[element].databaseId}");
+      } else {
+        print(
+            "Failed to delete item schedule: ${Schedule.listOfTimes[element].databaseId}");
+      }
     });
     setState(() {
       scheduleController.set(Schedule.listOfTimes.length);
@@ -319,8 +481,10 @@ class _SchedulePageState extends State<SchedulePage> {
                 onChanged: (int day) {
                   // print(printIntAsDay(day));
                   setState(() {
+                    print("Testingssssssss");
                     Schedule.listOfTimes[index].weekDaysIndex[day % 7] =
                         !Schedule.listOfTimes[index].weekDaysIndex[day % 7];
+                    // updateScheduleItemToDatabase(Schedule.listOfTimes[index]);
                   });
                 },
                 values: Schedule.listOfTimes[index].weekDaysIndex,
@@ -373,11 +537,12 @@ class _SchedulePageState extends State<SchedulePage> {
 }
 
 class Schedule {
+  static bool didScheduleUpdate = true;
+  static String generalScheduleDatabaseId = "";
   // Lists in dart have methods such as .add() and .remove()
-  // For instance, we set scheduled time to 5:30 AM
   static List<ListItem<dynamic>> listOfTimes = [
-    ListItem(DateTime(DateTimeService.timeNow.year,
-        DateTimeService.timeNow.month, DateTimeService.timeNow.day, 13, 30))
+    // ListItem(DateTime(DateTimeService.timeNow.year,
+    //     DateTimeService.timeNow.month, DateTimeService.timeNow.day, 13, 30))
   ];
 }
 
@@ -387,7 +552,7 @@ class ListItem<T> {
   List<bool> weekDaysIndex = List.filled(7, true);
   bool isEditingNow = false;
   double dispenserDuration = 2.0;
-  // String repeatsEvery = "Everyday";
+  String? databaseId; // The database id
   T data; //Data of the user
   ListItem(this.data); //Constructor to assign the data
 }
