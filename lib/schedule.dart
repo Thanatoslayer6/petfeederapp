@@ -31,10 +31,10 @@ class _SchedulePageState extends State<SchedulePage> {
     super.dispose();
     if (Schedule.didModifySchedule == true) {
       updateSchedulesToDatabase();
+      print("Disposing schedule stack and saving the contents to file now");
+      Schedule.saveSchedule();
       Schedule.didModifySchedule = false;
     }
-    print("Disposing schedule stack and saving the contents to file now");
-    Schedule.saveSchedule();
   }
 
   @override
@@ -59,8 +59,8 @@ class _SchedulePageState extends State<SchedulePage> {
         "${dotenv.env['CRUD_API']!}/api/schedule/${Schedule.generalScheduleDatabaseId}";
     for (var schedule in Schedule.listOfTimes) {
       properList.add({
-        'hour': schedule.data.hour,
-        'minute': schedule.data.minute,
+        'hour': schedule.hour,
+        'minute': schedule.minute,
         'enabled': schedule.isActive,
         'weekDay': schedule.weekDaysIndex,
         'feedDuration': schedule.dispenserDuration
@@ -104,12 +104,15 @@ class _SchedulePageState extends State<SchedulePage> {
         if (jsonParsedData.containsKey('items')) {
           // There is stored data...
           for (int i = 0; i < jsonParsedData['items'].length; i++) {
-            Schedule.listOfTimes.add(ListItem(DateTime(
-                DateTimeService.timeNow.year,
-                DateTimeService.timeNow.month,
-                DateTimeService.timeNow.day,
+            // Schedule.listOfTimes.add(ListItem(DateTime(
+            //     DateTimeService.timeNow.year,
+            //     DateTimeService.timeNow.month,
+            //     DateTimeService.timeNow.day,
+            //     jsonParsedData['items'][i]['hour'],
+            //     jsonParsedData['items'][i]['minute'])));
+            Schedule.listOfTimes.add(ListItem(
                 jsonParsedData['items'][i]['hour'],
-                jsonParsedData['items'][i]['minute'])));
+                jsonParsedData['items'][i]['hour']));
             // Set up its id (the one from we get from the database)
             Schedule.listOfTimes[i].databaseId =
                 jsonParsedData['items'][i]['_id'];
@@ -186,12 +189,13 @@ class _SchedulePageState extends State<SchedulePage> {
     // Let the user pick a certain time first...
     if (pickedTime != null) {
       // Add schedule to front-end
-      Schedule.listOfTimes.add(ListItem(DateTime(
-          DateTimeService.timeNow.year,
-          DateTimeService.timeNow.month,
-          DateTimeService.timeNow.day,
-          pickedTime.hour,
-          pickedTime.minute)));
+      // Schedule.listOfTimes.add(ListItem(DateTime(
+      //     DateTimeService.timeNow.year,
+      //     DateTimeService.timeNow.month,
+      //     DateTimeService.timeNow.day,
+      //     pickedTime.hour,
+      //     pickedTime.minute)));
+      Schedule.listOfTimes.add(ListItem(pickedTime.hour, pickedTime.minute));
       // Add schedule to back-end (database)
       if (newUserWithNoSchedules == true) {
         requestURL = "${dotenv.env['CRUD_API']!}/api/schedule/";
@@ -260,8 +264,11 @@ class _SchedulePageState extends State<SchedulePage> {
   void editTimeItem(int indexOfItemToBeEdited) async {
     // Set initial time as the time of the item
     TimeOfDay? pickedTime = await showTimePicker(
+      // initialTime: TimeOfDay.fromDateTime(Schedule.listOfTimes[indexOfItemToBeEdited].data),
       initialTime: TimeOfDay.fromDateTime(
-          Schedule.listOfTimes[indexOfItemToBeEdited].data),
+          DateTimeService.getDateWithHourAndMinuteSet(
+              Schedule.listOfTimes[indexOfItemToBeEdited].hour,
+              Schedule.listOfTimes[indexOfItemToBeEdited].minute)),
       context: context,
     );
 
@@ -269,12 +276,14 @@ class _SchedulePageState extends State<SchedulePage> {
       Schedule.didModifySchedule = true;
       // Edit current time
       setState(() {
-        Schedule.listOfTimes[indexOfItemToBeEdited].data = DateTime(
-            DateTimeService.timeNow.year,
-            DateTimeService.timeNow.month,
-            DateTimeService.timeNow.day,
-            pickedTime.hour,
-            pickedTime.minute);
+        // Schedule.listOfTimes[indexOfItemToBeEdited].data = DateTime(
+        //     DateTimeService.timeNow.year,
+        //     DateTimeService.timeNow.month,
+        //     DateTimeService.timeNow.day,
+        //     pickedTime.hour,
+        //     pickedTime.minute);
+        Schedule.listOfTimes[indexOfItemToBeEdited].hour = pickedTime.hour;
+        Schedule.listOfTimes[indexOfItemToBeEdited].minute = pickedTime.minute;
       });
     } else {
       print("User cancelled editing time");
@@ -378,8 +387,15 @@ class _SchedulePageState extends State<SchedulePage> {
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
                                       Text(
+                                        // DateFormat('h:mm').format(
+                                        //     Schedule.listOfTimes[index].data)
                                         DateFormat('h:mm').format(
-                                            Schedule.listOfTimes[index].data),
+                                            DateTimeService
+                                                .getDateWithHourAndMinuteSet(
+                                                    Schedule.listOfTimes[index]
+                                                        .hour,
+                                                    Schedule.listOfTimes[index]
+                                                        .minute)),
                                         style: TextStyle(
                                             fontFamily: "Poppins",
                                             fontSize: getadaptiveTextSize(
@@ -389,8 +405,15 @@ class _SchedulePageState extends State<SchedulePage> {
                                       Padding(
                                         padding: const EdgeInsets.only(left: 6),
                                         child: Text(
-                                          DateFormat('a').format(
-                                              Schedule.listOfTimes[index].data),
+                                          // DateFormat('a').format(
+                                          //     Schedule.listOfTimes[index].data),
+
+                                          DateFormat('a').format(DateTimeService
+                                              .getDateWithHourAndMinuteSet(
+                                                  Schedule
+                                                      .listOfTimes[index].hour,
+                                                  Schedule.listOfTimes[index]
+                                                      .minute)),
                                           style: TextStyle(
                                               fontFamily: "Poppins",
                                               fontSize: getadaptiveTextSize(
@@ -547,25 +570,21 @@ class Schedule {
   static bool didModifySchedule = false;
   static String generalScheduleDatabaseId = "";
   // Lists in dart have methods such as .add() and .remove()
-  static List<ListItem<dynamic>> listOfTimes = [];
+  static List<ListItem> listOfTimes = [];
 
   static Future<File> _getFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
+    print("$path/schedule.json");
     return File('$path/schedule.json');
   }
 
-  // static Future<void> saveSchedule() async {
-  //   final file = await _getFile();
-  //   final json = jsonEncode(listOfTimes);
-  //   await file.writeAsString(json);
-  // }
-
+  /*
   static Future<void> saveSchedule() async {
     final file = await _getFile();
     final List<Map<String, dynamic>> jsonList =
         Schedule.listOfTimes.map((item) => item.toJson()).toList();
-    final jsonString = json.encode(jsonList);
+    final jsonString = convert.json.encode(jsonList);
     await file.writeAsString(jsonString);
   }
 
@@ -574,26 +593,68 @@ class Schedule {
       final file = await _getFile();
       final contents = await file.readAsString();
       final json = jsonDecode(contents);
-      final items = json.map((e) => ListItem<dynamic>(e)).toList();
+      final items = json.map((e) => ListItem<>(e)).toList();
       listOfTimes.clear();
       listOfTimes.addAll(items);
     } catch (e) {
       print('Error loading schedule: $e');
     }
   }
+  */
+  static Future<void> saveSchedule() async {
+    final file = await _getFile();
+    final jsonList = Schedule.listOfTimes.map((e) => e.toJson()).toList();
+    final jsonString = json.encode(jsonList);
+    await file.writeAsString(jsonString);
+  }
+
+  static Future<void> loadSchedule() async {
+    try {
+      final file = await _getFile();
+      final jsonString = await file.readAsString();
+      final jsonList = json.decode(jsonString) as List<dynamic>;
+      // TODO: Quickly solve this...
+      print(jsonList.toString());
+      Schedule.listOfTimes.clear();
+      for (int i = 0; i < jsonList.length; i++) {
+        /* final hour = jsonList[i]['hour'] as int; */
+        /* final minute = jsonList[i]['minute'] as int; */
+        Schedule.listOfTimes.add(ListItem(jsonList[i]['hour'] as int, jsonList[i]['minute'] as int));
+        Schedule.listOfTimes[i].isActive = jsonList[i]['isActive'] as bool;
+        Schedule.listOfTimes[i].weekDaysIndex = List<bool>.from(jsonList[i]['weekDaysIndex']);
+        Schedule.listOfTimes[i].dispenserDuration = jsonList[i]['dispenserDuration'] as double;
+        Schedule.listOfTimes[i].databaseId = jsonList[i]['databaseId'] as String;
+      }
+
+      /* Schedule.listOfTimes = jsonList */
+      /*     .map((jsonListItem) => ListItem( */
+      /*           jsonListItem['hour'], */
+      /*           jsonListItem['minute'], */
+      /*         ) */
+      /*           ..isActive = jsonListItem['isActive'] */
+      /*           ..weekDaysIndex = List<bool>.from(jsonListItem['weekDaysIndex']) */
+      /*           ..isEditingNow = jsonListItem['isEditingNow'] */
+      /*           ..dispenserDuration = jsonListItem['dispenserDuration'] */
+      /*           ..databaseId = jsonListItem['databaseId']) */
+      /*     .toList(); */
+    } catch (e) {
+      print('Failed to load schedule: $e');
+    }
+  }
 }
 
-class ListItem<T> {
+class ListItem {
   // bool isSelected = false; //Selection property to highlight or not
   bool isActive = false;
   List<bool> weekDaysIndex = List.filled(7, true);
   bool isEditingNow = false;
   double dispenserDuration = 2.0;
   String? databaseId; // The database id
+  int hour = 0;
+  int minute = 0;
+  // DateTime data; //Data of the user
 
-  T data; //Data of the user
-
-  ListItem(this.data); //Constructor to assign the data
+  ListItem(this.hour, this.minute); //Constructor to assign the data
 
   Map<String, dynamic> toJson() {
     return {
@@ -602,7 +663,8 @@ class ListItem<T> {
       'isEditingNow': isEditingNow,
       'dispenserDuration': dispenserDuration,
       'databaseId': databaseId,
-      'data': data,
+      'hour': hour,
+      'minute': minute
     };
   }
 }

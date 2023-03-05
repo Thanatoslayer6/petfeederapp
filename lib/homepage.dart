@@ -57,8 +57,8 @@ class _HomepageState extends State<Homepage> {
       // Get only the datetime objects from their hour and minute, then send to esp32
       for (int i = 0; i < Homepage.activeSchedules.length; i++) {
         minifiedDateTime.add({
-          'hour': Homepage.activeSchedules[i].data.hour,
-          'minute': Homepage.activeSchedules[i].data.minute,
+          'hour': Homepage.activeSchedules[i].hour,
+          'minute': Homepage.activeSchedules[i].minute,
         });
       }
       String payload = convert.json.encode(minifiedDateTime);
@@ -75,8 +75,8 @@ class _HomepageState extends State<Homepage> {
           modeIdentifierWidget(context, true), // Automatic Mode ? Manual Mode
           headlineAutomaticWidget(context), // Feeding Time (TIME)
           subHeadlineWidget(
-              context, Homepage.activeSchedules[0].data), // HH:MM a (TIME)
-          countdownWidget(Homepage.activeSchedules[0].data),
+              context, DateTimeService.getDateWithHourAndMinuteSet(Homepage.activeSchedules[0].hour, Homepage.activeSchedules[0].minute)), // HH:MM a (TIME)
+          countdownWidget(DateTimeService.getDateWithHourAndMinuteSet(Homepage.activeSchedules[0].hour, Homepage.activeSchedules[0].minute)),
           // BUTTONS BELOW,
           // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           setScheduleButtonWidget(), // Set schedule
@@ -141,8 +141,15 @@ class _HomepageState extends State<Homepage> {
         Schedule.listOfTimes.where((item) => item.isActive).toList();
     if (activeSchedules.isNotEmpty) {
       // Sort the list according to the nearest time from now in ascending order
-      activeSchedules.sort((a, b) => calculateRemainingTime(a.data)
-          .compareTo(calculateRemainingTime(b.data)));
+      // activeSchedules.sort((a, b) => calculateRemainingTime(a.data)
+      //     .compareTo(calculateRemainingTime(b.data)));
+
+      activeSchedules.sort((a, b) {
+        return calculateRemainingTime(
+                DateTimeService.getDateWithHourAndMinuteSet(a.hour, a.minute))
+            .compareTo(calculateRemainingTime(
+                DateTimeService.getDateWithHourAndMinuteSet(b.hour, b.minute)));
+      });
 
       // Handle the weekday stuff []
       // DateTimeService.timeNow.weekday;

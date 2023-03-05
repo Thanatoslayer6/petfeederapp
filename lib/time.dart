@@ -86,6 +86,11 @@ class DateTimeService {
 
   static DateTime get timeNow => DateTime.now();
 
+  static DateTime getDateWithHourAndMinuteSet(int hour, int minute) {
+    return DateTime(DateTime.now().year, DateTime.now().month,
+        DateTime.now().day, hour, minute);
+  }
+
   static String getCurrentDateTimeFormatted() {
     final now = DateTime.now();
     final dayOfWeek = DateFormat.E().format(now);
