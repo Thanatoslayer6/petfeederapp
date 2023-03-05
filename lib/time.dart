@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'adaptive.dart';
 
 // ignore: must_be_immutable
@@ -84,4 +85,14 @@ class DateTimeService {
   static Stream<DateTime> get stream => _streamController.stream;
 
   static DateTime get timeNow => DateTime.now();
+
+  static String getCurrentDateTimeFormatted() {
+    final now = DateTime.now();
+    final dayOfWeek = DateFormat.E().format(now);
+    final dayOfMonth = DateFormat.d().format(now);
+    final month = DateFormat.MMM().format(now);
+    final hourMinute = DateFormat.jm().format(now);
+
+    return '$dayOfWeek $dayOfMonth, $month, $hourMinute';
+  }
 }

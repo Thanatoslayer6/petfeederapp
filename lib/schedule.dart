@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:weekday_selector/weekday_selector.dart';
 import 'preferences.dart';
 import 'time.dart';
@@ -31,16 +33,17 @@ class _SchedulePageState extends State<SchedulePage> {
       updateSchedulesToDatabase();
       Schedule.didModifySchedule = false;
     }
+    print("Disposing schedule stack and saving the contents to file now");
+    Schedule.saveSchedule();
   }
 
   @override
   void initState() {
     super.initState();
     // First we connect to the database, to check if there are entries
-    if (Schedule.listOfTimes.isEmpty || Schedule.didScheduleUpdate == true) {
+    if (Schedule.listOfTimes.isEmpty) {
       // Reset the variables
       Schedule.listOfTimes = []; // Just reassuring
-      Schedule.didScheduleUpdate = false;
       getScheduleFromDatabase().then((_) {
         scheduleController.disableEditingWhenNoneSelected = true;
         scheduleController.set(Schedule.listOfTimes.length);
@@ -63,7 +66,6 @@ class _SchedulePageState extends State<SchedulePage> {
         'feedDuration': schedule.dispenserDuration
       });
     }
-    // print(properList.toList());
     var jsonBody =
         json.encode({'client': UserInfo.productId, 'items': properList});
 
@@ -73,7 +75,6 @@ class _SchedulePageState extends State<SchedulePage> {
         },
         body: jsonBody);
     if (response.statusCode == 200) {
-      // Schedule.listOfTimes[i].
       print("Successfully updated item: ${Schedule.generalScheduleDatabaseId}");
     } else {
       print("Failed to update item: ${Schedule.generalScheduleDatabaseId}");
@@ -94,6 +95,11 @@ class _SchedulePageState extends State<SchedulePage> {
       if (jsonResponse['data'].length > 0) {
         var jsonParsedData = jsonResponse['data'][0];
         Schedule.generalScheduleDatabaseId = jsonParsedData['_id'];
+        if (UserInfo.generalScheduleDatabaseId == null) {
+          print("Schedule database id is not saved, trying to save now...");
+          UserInfo.preferences.setString(
+              'generalScheduleDatabaseId', Schedule.generalScheduleDatabaseId);
+        }
         print(jsonParsedData);
         if (jsonParsedData.containsKey('items')) {
           // There is stored data...
@@ -114,8 +120,8 @@ class _SchedulePageState extends State<SchedulePage> {
                 List<bool>.from(jsonParsedData['items'][i]['weekDay']);
           }
         }
-        print(Schedule.listOfTimes.toList());
-        print(Schedule.listOfTimes.length);
+        // print(Schedule.listOfTimes.toList());
+        // print(Schedule.listOfTimes.length);
       } else {
         // New user
         print(
@@ -211,7 +217,6 @@ class _SchedulePageState extends State<SchedulePage> {
           'weekDay': List.filled(7, true),
           'feedDuration': 2
         });
-        Schedule.didScheduleUpdate = true;
       }
 
       print(requestURL);
@@ -223,7 +228,23 @@ class _SchedulePageState extends State<SchedulePage> {
           body: jsonBody);
 
       if (response.statusCode == 200) {
-        print("Successfully added item schedule on database");
+        if (newUserWithNoSchedules == true) {
+          var jsonResponse =
+              convert.jsonDecode(response.body) as Map<String, dynamic>;
+          // print(jsonResponse.toString());
+          // var jsonParsedData = jsonResponse['data'][0];
+          Schedule.generalScheduleDatabaseId = jsonResponse['data']['_id'];
+          print(Schedule.generalScheduleDatabaseId);
+
+          UserInfo.preferences.setString(
+              'generalScheduleDatabaseId', Schedule.generalScheduleDatabaseId);
+          print(
+              "Successfully added item schedule on database as a new user...");
+          // Reset variable since user has new schedule now...
+          newUserWithNoSchedules = false;
+        } else {
+          print("Successfully added item schedule on database");
+        }
       } else {
         print("Failed to add item schedule on database");
       }
@@ -266,7 +287,6 @@ class _SchedulePageState extends State<SchedulePage> {
     // Reoder from biggest number, so it wont error
     list.sort((b, a) => a.compareTo(b));
     // ignore: avoid_function_literals_in_foreach_calls
-    // TODO: DOOOOOOOOOOOOOOOOOOOOOOO THISSSSSSSSSSSSSSSSSSSSSSSSSSSS THEN PROCEED TO HISTORY LOGS QUICKLY
     list.forEach((element) async {
       Schedule.listOfTimes.removeAt(element);
     });
@@ -434,8 +454,6 @@ class _SchedulePageState extends State<SchedulePage> {
                             // END OF CHILDREN OF LISTTLE
                             ),
                   ),
-
-                  // END LIST TILEEEEEEEEEEEEEe
                 ),
                 // END FIRST CONTAINER
                 // ADD THE STUFF HERE
@@ -526,14 +544,43 @@ class _SchedulePageState extends State<SchedulePage> {
 }
 
 class Schedule {
-  static bool didScheduleUpdate = true;
   static bool didModifySchedule = false;
   static String generalScheduleDatabaseId = "";
   // Lists in dart have methods such as .add() and .remove()
-  static List<ListItem<dynamic>> listOfTimes = [
-    // ListItem(DateTime(DateTimeService.timeNow.year,
-    //     DateTimeService.timeNow.month, DateTimeService.timeNow.day, 13, 30))
-  ];
+  static List<ListItem<dynamic>> listOfTimes = [];
+
+  static Future<File> _getFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    return File('$path/schedule.json');
+  }
+
+  // static Future<void> saveSchedule() async {
+  //   final file = await _getFile();
+  //   final json = jsonEncode(listOfTimes);
+  //   await file.writeAsString(json);
+  // }
+
+  static Future<void> saveSchedule() async {
+    final file = await _getFile();
+    final List<Map<String, dynamic>> jsonList =
+        Schedule.listOfTimes.map((item) => item.toJson()).toList();
+    final jsonString = json.encode(jsonList);
+    await file.writeAsString(jsonString);
+  }
+
+  static Future<void> loadSchedule() async {
+    try {
+      final file = await _getFile();
+      final contents = await file.readAsString();
+      final json = jsonDecode(contents);
+      final items = json.map((e) => ListItem<dynamic>(e)).toList();
+      listOfTimes.clear();
+      listOfTimes.addAll(items);
+    } catch (e) {
+      print('Error loading schedule: $e');
+    }
+  }
 }
 
 class ListItem<T> {
@@ -543,8 +590,21 @@ class ListItem<T> {
   bool isEditingNow = false;
   double dispenserDuration = 2.0;
   String? databaseId; // The database id
+
   T data; //Data of the user
+
   ListItem(this.data); //Constructor to assign the data
+
+  Map<String, dynamic> toJson() {
+    return {
+      'isActive': isActive,
+      'weekDaysIndex': weekDaysIndex,
+      'isEditingNow': isEditingNow,
+      'dispenserDuration': dispenserDuration,
+      'databaseId': databaseId,
+      'data': data,
+    };
+  }
 }
 
 String showWeekDays(List<bool> list) {

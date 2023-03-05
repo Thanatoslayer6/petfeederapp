@@ -20,7 +20,7 @@ class MQTT {
     context.setTrustedCertificatesBytes(letsEncryptCA.buffer.asUint8List());
     client.setProtocolV311();
     client.securityContext = context;
-    client.logging(on: true);
+    client.logging(on: false);
     client.keepAlivePeriod = 20;
     client.port = 8883;
     client.secure = true;

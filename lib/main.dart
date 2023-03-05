@@ -10,6 +10,7 @@ import 'package:petfeederapp/camera.dart';
 import 'package:petfeederapp/settings.dart';
 import 'package:flutter/services.dart';
 import 'package:petfeederapp/start.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'adaptive.dart';
 import 'preferences.dart';
 import 'navigation.dart';
@@ -30,14 +31,13 @@ Future main() async {
   DateTimeService.init();
   // Load environment variables
   await dotenv.load(fileName: "assets/.env");
-  // Request location permissions for smartconfig
-  locationPermissionHandler();
-  // Then call runApp() as normal
-  runApp(const MyApp());
-}
 
-locationPermissionHandler() async {
-  if (await Permission.location)
+  // Request location permissions for smartconfig
+  if (await Permission.location.request().isGranted) {
+    print("Location permissions are granted");
+  }
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -48,20 +48,26 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  UserInfo app = UserInfo();
   // This method will be used for updating user status
   void updateUserStatus(bool status) {
     UserInfo.isUserNew = status;
-    app.preferences.setBool('isUserNew', status);
-    app.preferences.setString('productId', UserInfo.productId as String);
-    app.preferences
+    UserInfo.preferences.setBool('isUserNew', status);
+    UserInfo.preferences.setString('productId', UserInfo.productId as String);
+    UserInfo.preferences
         .setString('devicePassword', UserInfo.devicePassword as String);
     setState(() {});
   }
 
+  // Initialize and fet stored data from shared preferences
   @override
   void initState() {
     super.initState();
+    sharedPrefInit();
+  }
+
+  sharedPrefInit() async {
+    final app = UserInfo();
+    await app.initializeSharedPreferences();
     app.getStoredData();
   }
 
@@ -73,10 +79,17 @@ class _MyAppState extends State<MyApp> {
         stream: Connectivity().onConnectivityChanged,
         builder: ((context, snapshot) {
           final result = snapshot.data;
-          if (UserInfo.isUserNew == true) {
+
+          // TODO: Set this condition to true, just demoing for now to bypass start screen for new users
+          if (UserInfo.isUserNew == false) {
+            // if (UserInfo.isUserNew == true) {
             return StartScreen(
                 result: result, updateUserStatus: updateUserStatus);
           } else {
+            // START (remove this after testing)
+            UserInfo.productId = "demo1234";
+            UserInfo.devicePassword = "demo1234";
+            // END
             if (result == ConnectivityResult.none || result == null) {
               return const DefaultTabController(
                 length: 3,

@@ -1,12 +1,15 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
-import 'dart:convert';
+import 'dart:convert' as convert;
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:petfeederapp/mqtt.dart';
+import 'activitylog.dart';
 import 'adaptive.dart';
 import 'time.dart';
 import 'schedule.dart';
@@ -38,6 +41,9 @@ class _HomepageState extends State<Homepage> {
     if (MQTT.isConnected == false) {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
     }
+
+    // Get saved contents of schedules
+    Schedule.loadSchedule();
   }
 
   @override
@@ -45,7 +51,8 @@ class _HomepageState extends State<Homepage> {
     Homepage.activeSchedules = getScheduleInOrder();
     // Send schedule to the ESP32
     if (Homepage.wentToSchedule == true) {
-      print("Setting up schedule");
+      print(
+          "Setting up schedule if user changes something... else this statement is meaningless");
       List minifiedDateTime = [];
       // Get only the datetime objects from their hour and minute, then send to esp32
       for (int i = 0; i < Homepage.activeSchedules.length; i++) {
@@ -54,7 +61,7 @@ class _HomepageState extends State<Homepage> {
           'minute': Homepage.activeSchedules[i].data.minute,
         });
       }
-      String payload = json.encode(minifiedDateTime);
+      String payload = convert.json.encode(minifiedDateTime);
       // If payload is '[]' this means that user is in manual mode...
       // else he/she is on automation
       MQTT.publish("${UserInfo.productId}/schedule", payload);
@@ -144,6 +151,7 @@ class _HomepageState extends State<Homepage> {
               (item) => item.weekDaysIndex[DateTimeService.timeNow.weekday % 7])
           .toList();
 
+      // UserInfo.preferences.setStringList(key, value)
       return activeSchedules;
       // Print
     } else {
@@ -257,7 +265,16 @@ class _HomepageState extends State<Homepage> {
         padding: EdgeInsets.all(getadaptiveTextSize(context, 8)),
         width: MediaQuery.of(context).size.width,
         child: MaterialButton(
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Do this....
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ActivityLogPage())).then((_) {
+                // // Simply update page after exiting the page
+                setState(() {});
+              });
+            },
             padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
                 getadaptiveTextSize(context, 4)),
             shape:
@@ -541,7 +558,87 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
     // Unsubscribe from MQTT messages
     MQTT.client.unsubscribe("${UserInfo.productId}/feed_duration_response");
     subscription.cancel();
+
+    // Send in success log to database
+    if (done == true && failed == false) {
+      sendInSuccessLogToDatabase();
+    }
+
     super.dispose();
+  }
+
+  sendInSuccessLogToDatabase() async {
+    String requestURL = "";
+    String jsonBody = "";
+    bool newUserWithNoLogs = false;
+    // First check if the user already has a collection within the database
+
+    final String checkDatabaseURL =
+        "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
+    var responseDatabase = await http.get(Uri.parse(checkDatabaseURL));
+    var jsonResponseDatabase =
+        convert.jsonDecode(responseDatabase.body) as Map<String, dynamic>;
+
+    print(jsonResponseDatabase['data'].toString());
+
+    if (jsonResponseDatabase['data'].length > 0) {
+      print("User has logs in the database... just setting it up");
+      // User already has logs in the database
+      requestURL =
+          "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
+      // var response = await http.get(Uri.parse(requestURL));
+      jsonBody = convert.json.encode({
+        'type': "Feed Log",
+        'didFail': false,
+        'duration': _sliderValue.toInt(),
+        'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
+      });
+    } else {
+      newUserWithNoLogs = true;
+      print(
+          "User doesn't have logs in the database... will send a creation payload");
+      // Create a log collection for the user
+      requestURL = "${dotenv.env['CRUD_API']!}/api/logs/";
+      // var response = await http.get(Uri.parse(requestURL));
+      jsonBody = convert.json.encode({
+        'client': UserInfo.productId,
+        'items': [
+          {
+            'type': "Feed Log",
+            'didFail': false,
+            'duration': _sliderValue.toInt(),
+            'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
+          }
+        ]
+      });
+    }
+
+    print(requestURL);
+
+    final response = await http.post(Uri.parse(requestURL),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonBody);
+
+    if (response.statusCode == 200) {
+      if (newUserWithNoLogs == true) {
+        var jsonResponse =
+            convert.jsonDecode(response.body) as Map<String, dynamic>;
+
+        History.generalHistoryDatabaseId = jsonResponse['data']['_id'];
+        print(History.generalHistoryDatabaseId);
+
+        UserInfo.preferences.setString(
+            'generalHistoryDatabaseId', History.generalHistoryDatabaseId);
+        print("Successfully added item log on database as a new user...");
+      } else {
+        print("Successfully added item log on database");
+      }
+      History.didUserUpdate = true;
+    } else {
+      print("Failed to add item log on database");
+    }
   }
 
   @override
