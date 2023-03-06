@@ -30,9 +30,10 @@ class _SchedulePageState extends State<SchedulePage> {
   void dispose() {
     super.dispose();
     if (Schedule.didModifySchedule == true) {
-      updateSchedulesToDatabase();
+      updateSchedulesToDatabase().then((_) async {
+        await Schedule.saveSchedule();
+      });
       print("Disposing schedule stack and saving the contents to file now");
-      Schedule.saveSchedule();
       Schedule.didModifySchedule = false;
     }
   }
@@ -56,7 +57,7 @@ class _SchedulePageState extends State<SchedulePage> {
     // Also update the database information
     List properList = [];
     String requestURL =
-        "${dotenv.env['CRUD_API']!}/api/schedule/${Schedule.generalScheduleDatabaseId}";
+        "${dotenv.env['CRUD_API']!}/api/schedule/${UserInfo.generalScheduleDatabaseId}";
     for (var schedule in Schedule.listOfTimes) {
       properList.add({
         'hour': schedule.hour,
@@ -75,9 +76,9 @@ class _SchedulePageState extends State<SchedulePage> {
         },
         body: jsonBody);
     if (response.statusCode == 200) {
-      print("Successfully updated item: ${Schedule.generalScheduleDatabaseId}");
+      print("Successfully updated item: ${UserInfo.generalScheduleDatabaseId}");
     } else {
-      print("Failed to update item: ${Schedule.generalScheduleDatabaseId}");
+      print("Failed to update item: ${UserInfo.generalScheduleDatabaseId}");
     }
   }
 
@@ -94,11 +95,11 @@ class _SchedulePageState extends State<SchedulePage> {
 
       if (jsonResponse['data'].length > 0) {
         var jsonParsedData = jsonResponse['data'][0];
-        Schedule.generalScheduleDatabaseId = jsonParsedData['_id'];
         if (UserInfo.generalScheduleDatabaseId == null) {
+          UserInfo.generalScheduleDatabaseId = jsonParsedData['_id'];
           print("Schedule database id is not saved, trying to save now...");
-          UserInfo.preferences.setString(
-              'generalScheduleDatabaseId', Schedule.generalScheduleDatabaseId);
+          UserInfo.preferences.setString('generalScheduleDatabaseId',
+              UserInfo.generalScheduleDatabaseId as String);
         }
         print(jsonParsedData);
         if (jsonParsedData.containsKey('items')) {
@@ -113,9 +114,6 @@ class _SchedulePageState extends State<SchedulePage> {
             Schedule.listOfTimes.add(ListItem(
                 jsonParsedData['items'][i]['hour'],
                 jsonParsedData['items'][i]['hour']));
-            // Set up its id (the one from we get from the database)
-            Schedule.listOfTimes[i].databaseId =
-                jsonParsedData['items'][i]['_id'];
             // Set up dispenser duration
             Schedule.listOfTimes[i].dispenserDuration =
                 (jsonParsedData['items'][i]['feedDuration']).toDouble();
@@ -188,6 +186,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
     // Let the user pick a certain time first...
     if (pickedTime != null) {
+      Schedule.didModifySchedule = true;
       // Add schedule to front-end
       // Schedule.listOfTimes.add(ListItem(DateTime(
       //     DateTimeService.timeNow.year,
@@ -237,17 +236,17 @@ class _SchedulePageState extends State<SchedulePage> {
               convert.jsonDecode(response.body) as Map<String, dynamic>;
           // print(jsonResponse.toString());
           // var jsonParsedData = jsonResponse['data'][0];
-          Schedule.generalScheduleDatabaseId = jsonResponse['data']['_id'];
-          print(Schedule.generalScheduleDatabaseId);
+          UserInfo.generalScheduleDatabaseId = jsonResponse['data']['_id'];
+          print(UserInfo.generalScheduleDatabaseId);
 
-          UserInfo.preferences.setString(
-              'generalScheduleDatabaseId', Schedule.generalScheduleDatabaseId);
+          UserInfo.preferences.setString('generalScheduleDatabaseId',
+              UserInfo.generalScheduleDatabaseId as String);
           print(
               "Successfully added item schedule on database as a new user...");
           // Reset variable since user has new schedule now...
           newUserWithNoSchedules = false;
         } else {
-          print("Successfully added item schedule on database");
+          print("Successfully added item schedule on existing database");
         }
       } else {
         print("Failed to add item schedule on database");
@@ -273,7 +272,6 @@ class _SchedulePageState extends State<SchedulePage> {
     );
 
     if (pickedTime != null) {
-      Schedule.didModifySchedule = true;
       // Edit current time
       setState(() {
         // Schedule.listOfTimes[indexOfItemToBeEdited].data = DateTime(
@@ -282,6 +280,7 @@ class _SchedulePageState extends State<SchedulePage> {
         //     DateTimeService.timeNow.day,
         //     pickedTime.hour,
         //     pickedTime.minute);
+        Schedule.didModifySchedule = true;
         Schedule.listOfTimes[indexOfItemToBeEdited].hour = pickedTime.hour;
         Schedule.listOfTimes[indexOfItemToBeEdited].minute = pickedTime.minute;
       });
@@ -446,10 +445,10 @@ class _SchedulePageState extends State<SchedulePage> {
                                       const Color.fromARGB(255, 33, 31, 103),
                                   value: Schedule.listOfTimes[index].isActive,
                                   onChanged: (value) {
-                                    Schedule.didModifySchedule = true;
                                     setState(() {
                                       Schedule.listOfTimes[index].isActive =
                                           value;
+                                      Schedule.didModifySchedule = true;
                                     });
                                   }),
                               IconButton(
@@ -510,10 +509,10 @@ class _SchedulePageState extends State<SchedulePage> {
                 // We display the last tapped value in the example app
                 onChanged: (int day) {
                   // print(printIntAsDay(day));
-                  Schedule.didModifySchedule = true;
                   setState(() {
                     Schedule.listOfTimes[index].weekDaysIndex[day % 7] =
                         !Schedule.listOfTimes[index].weekDaysIndex[day % 7];
+                    Schedule.didModifySchedule = true;
                   });
                 },
                 values: Schedule.listOfTimes[index].weekDaysIndex,
@@ -552,10 +551,10 @@ class _SchedulePageState extends State<SchedulePage> {
                       divisions: 9,
                       value: Schedule.listOfTimes[index].dispenserDuration,
                       onChanged: (newValue) {
-                        Schedule.didModifySchedule = true;
                         setState(() {
                           Schedule.listOfTimes[index].dispenserDuration =
                               newValue;
+                          Schedule.didModifySchedule = true;
                         });
                       }),
                 ),
@@ -568,7 +567,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
 class Schedule {
   static bool didModifySchedule = false;
-  static String generalScheduleDatabaseId = "";
+  // static String generalScheduleDatabaseId = "";
   // Lists in dart have methods such as .add() and .remove()
   static List<ListItem> listOfTimes = [];
 
@@ -613,17 +612,18 @@ class Schedule {
       final file = await _getFile();
       final jsonString = await file.readAsString();
       final jsonList = json.decode(jsonString) as List<dynamic>;
-      // TODO: Quickly solve this...
       print(jsonList.toString());
       Schedule.listOfTimes.clear();
       for (int i = 0; i < jsonList.length; i++) {
         /* final hour = jsonList[i]['hour'] as int; */
         /* final minute = jsonList[i]['minute'] as int; */
-        Schedule.listOfTimes.add(ListItem(jsonList[i]['hour'] as int, jsonList[i]['minute'] as int));
+        Schedule.listOfTimes.add(
+            ListItem(jsonList[i]['hour'] as int, jsonList[i]['minute'] as int));
         Schedule.listOfTimes[i].isActive = jsonList[i]['isActive'] as bool;
-        Schedule.listOfTimes[i].weekDaysIndex = List<bool>.from(jsonList[i]['weekDaysIndex']);
-        Schedule.listOfTimes[i].dispenserDuration = jsonList[i]['dispenserDuration'] as double;
-        Schedule.listOfTimes[i].databaseId = jsonList[i]['databaseId'] as String;
+        Schedule.listOfTimes[i].weekDaysIndex =
+            List<bool>.from(jsonList[i]['weekDaysIndex']);
+        Schedule.listOfTimes[i].dispenserDuration =
+            jsonList[i]['dispenserDuration'] as double;
       }
 
       /* Schedule.listOfTimes = jsonList */
@@ -649,7 +649,6 @@ class ListItem {
   List<bool> weekDaysIndex = List.filled(7, true);
   bool isEditingNow = false;
   double dispenserDuration = 2.0;
-  String? databaseId; // The database id
   int hour = 0;
   int minute = 0;
   // DateTime data; //Data of the user
@@ -662,7 +661,6 @@ class ListItem {
       'weekDaysIndex': weekDaysIndex,
       'isEditingNow': isEditingNow,
       'dispenserDuration': dispenserDuration,
-      'databaseId': databaseId,
       'hour': hour,
       'minute': minute
     };

@@ -75,8 +75,13 @@ class _HomepageState extends State<Homepage> {
           modeIdentifierWidget(context, true), // Automatic Mode ? Manual Mode
           headlineAutomaticWidget(context), // Feeding Time (TIME)
           subHeadlineWidget(
-              context, DateTimeService.getDateWithHourAndMinuteSet(Homepage.activeSchedules[0].hour, Homepage.activeSchedules[0].minute)), // HH:MM a (TIME)
-          countdownWidget(DateTimeService.getDateWithHourAndMinuteSet(Homepage.activeSchedules[0].hour, Homepage.activeSchedules[0].minute)),
+              context,
+              DateTimeService.getDateWithHourAndMinuteSet(
+                  Homepage.activeSchedules[0].hour,
+                  Homepage.activeSchedules[0].minute)), // HH:MM a (TIME)
+          countdownWidget(DateTimeService.getDateWithHourAndMinuteSet(
+              Homepage.activeSchedules[0].hour,
+              Homepage.activeSchedules[0].minute)),
           // BUTTONS BELOW,
           // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           setScheduleButtonWidget(), // Set schedule
@@ -273,7 +278,6 @@ class _HomepageState extends State<Homepage> {
         width: MediaQuery.of(context).size.width,
         child: MaterialButton(
             onPressed: () {
-              // TODO: Do this....
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -825,7 +829,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
             onPressed: () {
               // Handle MQTT here
               MQTT.publish("${UserInfo.productId}/uvlight_duration",
-                  (_sliderValue.toInt() * 1000).toString());
+                  (_sliderValue.toInt() * 60000).toString());
               setState(() {
                 starting = false;
               });

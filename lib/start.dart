@@ -34,7 +34,6 @@ class _StartScreenState extends State<StartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: ESPTouch smart config, database connection, persistent config (Remember me?)
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Form(
