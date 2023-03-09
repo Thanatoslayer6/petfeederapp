@@ -35,8 +35,7 @@ class TimeCountdown extends StatelessWidget {
           timeRemaining += "1 minute and ";
         } else if (minutes > 1) {
           timeRemaining += "$minutes minutes and ";
-        } else {
-          // In this case minutes will be '0'
+        } else if (minutes == 0 && hours > 1) {
           timeRemaining += "59 minutes ";
         }
 
@@ -44,7 +43,7 @@ class TimeCountdown extends StatelessWidget {
           timeRemaining += "1 second left";
         } else if (seconds > 1) {
           timeRemaining += "$seconds seconds left";
-        } else {
+        } else if (seconds == 0 && minutes > 1) {
           // In this case seconds will be '0'
           timeRemaining += "59 seconds left";
         }

@@ -157,21 +157,40 @@ class _SchedulePageState extends State<SchedulePage> {
         elevation: 0,
       ),
       body: ListView.builder(
-        itemCount: Schedule.listOfTimes.length,
-        itemBuilder: ((context, index) =>
-            scheduleItem(scheduleController, index)),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.alarm_add_rounded),
-        label: const Text("Add Schedule"),
-        onPressed: () {
-          // Deselect all selected items if existing
-          setState(() {
-            scheduleController.deselectAll();
-          });
-          addTimeItem();
+        // itemCount: Schedule.listOfTimes.length,
+        // itemBuilder: ((context, index) => scheduleItem(scheduleController, index)),
+        itemCount: Schedule.listOfTimes.length +
+            1, // add one extra item for the spacer
+        itemBuilder: (BuildContext context, int index) {
+          if (index == Schedule.listOfTimes.length) {
+            // if the index is the same as the data length,
+            // return a container with some fixed height as the spacer
+            return Container(
+              height: 64.0, // adjust this value to set the height of the spacer
+            );
+          } else {
+            // otherwise, return the regular item widget
+            // return ListTile(
+            //   title: Text(data[index]),
+            // );
+            return scheduleItem(scheduleController, index);
+          }
         },
       ),
+      // Only limit the schedules to 10
+      floatingActionButton: Schedule.listOfTimes.length != 10
+          ? FloatingActionButton.extended(
+              icon: const Icon(Icons.alarm_add_rounded),
+              label: const Text("Add Schedule"),
+              onPressed: () {
+                // Deselect all selected items if existing
+                setState(() {
+                  scheduleController.deselectAll();
+                });
+                addTimeItem();
+              },
+            )
+          : Container(),
     );
   }
 

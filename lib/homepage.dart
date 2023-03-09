@@ -60,14 +60,26 @@ class _HomepageState extends State<Homepage> {
         minifiedDateTime.add({
           'h': Homepage.activeSchedules[i].hour,
           'm': Homepage.activeSchedules[i].minute,
-          'd': Homepage.activeSchedules[i].dispenserDuration.toInt()
+          'd': (Homepage.activeSchedules[i].dispenserDuration * 1000)
+              .toInt() // Seconds in milliseconds
         });
       }
+
       String payload = convert.json.encode(minifiedDateTime);
       print(payload);
+      if (minifiedDateTime.isEmpty) {
+        print("Sending default values to microcontroller");
+        MQTT.publish(
+            "${UserInfo.productId}/feed_schedule",
+            convert.json.encode([
+              {'h': -1, 'm': -1, 'd': -1}
+            ]));
+      } else {
+        MQTT.publish("${UserInfo.productId}/feed_schedule", payload);
+      }
       // If payload is '[]' this means that user is in manual mode...
       // else he/she is on automation
-      MQTT.publish("${UserInfo.productId}/feeding_schedule", payload);
+      // MQTT.publish("${UserInfo.productId}/feed_schedule", payload);
       Homepage.wentToSchedule = false;
     }
 
@@ -474,10 +486,7 @@ Container countdownWidget(DateTime activeSchedule) {
       margin: const EdgeInsets.only(right: 16, bottom: 24),
       alignment: Alignment.topRight,
       // width: MediaQuery.of(context).size.width,
-      child:
-          // TimeCountdown(futureTime: scheduledTimes[scheduleRotationIndex]),
-          // TimeCountdown(futureTime: Schedule.listOfTimes[0].data),
-          TimeCountdown(futureTime: activeSchedule));
+      child: TimeCountdown(futureTime: activeSchedule));
 }
 
 // UNDECIDED
