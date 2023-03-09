@@ -40,6 +40,7 @@ class _HomepageState extends State<Homepage> {
     // Connect to the MQTT Broker
     if (MQTT.isConnected == false) {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
+      // MQTT.connectToBroker(UserInfo.productId);
     }
 
     // Get saved contents of schedules
@@ -57,14 +58,16 @@ class _HomepageState extends State<Homepage> {
       // Get only the datetime objects from their hour and minute, then send to esp32
       for (int i = 0; i < Homepage.activeSchedules.length; i++) {
         minifiedDateTime.add({
-          'hour': Homepage.activeSchedules[i].hour,
-          'minute': Homepage.activeSchedules[i].minute,
+          'h': Homepage.activeSchedules[i].hour,
+          'm': Homepage.activeSchedules[i].minute,
+          'd': Homepage.activeSchedules[i].dispenserDuration.toInt()
         });
       }
       String payload = convert.json.encode(minifiedDateTime);
+      print(payload);
       // If payload is '[]' this means that user is in manual mode...
       // else he/she is on automation
-      MQTT.publish("${UserInfo.productId}/schedule", payload);
+      MQTT.publish("${UserInfo.productId}/feeding_schedule", payload);
       Homepage.wentToSchedule = false;
     }
 
