@@ -24,7 +24,7 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> {
   // Set up schedule controller
   MultiSelectController scheduleController = MultiSelectController();
-  bool newUserWithNoSchedules = false;
+  // bool newUserWithNoSchedules = false;
 
   @override
   void dispose() {
@@ -83,6 +83,7 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   getScheduleFromDatabase() async {
+    // Get entire schedule
     final String requestURL =
         "${dotenv.env['CRUD_API']!}/api/schedule/client/${UserInfo.productId}";
     var response = await http.get(Uri.parse(requestURL));
@@ -105,12 +106,6 @@ class _SchedulePageState extends State<SchedulePage> {
         if (jsonParsedData.containsKey('items')) {
           // There is stored data...
           for (int i = 0; i < jsonParsedData['items'].length; i++) {
-            // Schedule.listOfTimes.add(ListItem(DateTime(
-            //     DateTimeService.timeNow.year,
-            //     DateTimeService.timeNow.month,
-            //     DateTimeService.timeNow.day,
-            //     jsonParsedData['items'][i]['hour'],
-            //     jsonParsedData['items'][i]['minute'])));
             Schedule.listOfTimes.add(ListItem(
                 jsonParsedData['items'][i]['hour'],
                 jsonParsedData['items'][i]['hour']));
@@ -127,7 +122,7 @@ class _SchedulePageState extends State<SchedulePage> {
         // New user
         print(
             "User doesn't have stored items in database... will add on next add");
-        newUserWithNoSchedules = true;
+        // newUserWithNoSchedules = true;
       }
     } else {
       return "Request failed with status: ${response.statusCode}";
@@ -195,8 +190,8 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   void addTimeItem() async {
-    String requestURL = "";
-    String jsonBody = "";
+    // String requestURL = "";
+    // String jsonBody = "";
     // Logic for setting schedule
     TimeOfDay? pickedTime = await showTimePicker(
       initialTime: TimeOfDay.now(),
@@ -215,6 +210,7 @@ class _SchedulePageState extends State<SchedulePage> {
       //     pickedTime.minute)));
       Schedule.listOfTimes.add(ListItem(pickedTime.hour, pickedTime.minute));
       // Add schedule to back-end (database)
+      /*
       if (newUserWithNoSchedules == true) {
         requestURL = "${dotenv.env['CRUD_API']!}/api/schedule/";
         jsonBody = json.encode({
@@ -240,7 +236,17 @@ class _SchedulePageState extends State<SchedulePage> {
           'feedDuration': 2
         });
       }
+      */
 
+      String requestURL =
+          "${dotenv.env['CRUD_API']!}/api/schedule/client/${UserInfo.productId}";
+      String jsonBody = json.encode({
+        'hour': pickedTime.hour,
+        'minute': pickedTime.minute,
+        'enabled': false,
+        'weekDay': List.filled(7, true),
+        'feedDuration': 2
+      });
       print(requestURL);
 
       final response = await http.post(Uri.parse(requestURL),
@@ -250,6 +256,7 @@ class _SchedulePageState extends State<SchedulePage> {
           body: jsonBody);
 
       if (response.statusCode == 200) {
+        /*
         if (newUserWithNoSchedules == true) {
           var jsonResponse =
               convert.jsonDecode(response.body) as Map<String, dynamic>;
@@ -267,6 +274,8 @@ class _SchedulePageState extends State<SchedulePage> {
         } else {
           print("Successfully added item schedule on existing database");
         }
+        */
+        print("Successfully added item schedule on existing database");
       } else {
         print("Failed to add item schedule on database");
       }

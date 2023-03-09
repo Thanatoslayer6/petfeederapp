@@ -40,7 +40,7 @@ class _HomepageState extends State<Homepage> {
     // Connect to the MQTT Broker
     if (MQTT.isConnected == false) {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
-      // MQTT.connectToBroker(UserInfo.productId);
+      // TODO:  Perform post request to create a record/document within the database
     }
 
     // Get saved contents of schedules
@@ -591,11 +591,11 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
   }
 
   sendInSuccessLogToDatabase() async {
-    String requestURL = "";
-    String jsonBody = "";
-    bool newUserWithNoLogs = false;
+    // String requestURL = "";
+    // String jsonBody = "";
+    // bool newUserWithNoLogs = false;
     // First check if the user already has a collection within the database
-
+    /*
     final String checkDatabaseURL =
         "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
     var responseDatabase = await http.get(Uri.parse(checkDatabaseURL));
@@ -635,9 +635,18 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
         ]
       });
     }
+    */
 
+    // User already has logs in the database
+    String requestURL =
+        "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
+    String jsonBody = convert.json.encode({
+      'type': "Feed Log",
+      'didFail': false,
+      'duration': _sliderValue.toInt(),
+      'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
+    });
     print(requestURL);
-
     final response = await http.post(Uri.parse(requestURL),
         headers: {
           'Content-Type': 'application/json',
@@ -645,19 +654,20 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
         body: jsonBody);
 
     if (response.statusCode == 200) {
-      if (newUserWithNoLogs == true) {
-        var jsonResponse =
-            convert.jsonDecode(response.body) as Map<String, dynamic>;
+      // if (newUserWithNoLogs == true) {
+      //   var jsonResponse =
+      //       convert.jsonDecode(response.body) as Map<String, dynamic>;
 
-        History.generalHistoryDatabaseId = jsonResponse['data']['_id'];
-        print(History.generalHistoryDatabaseId);
+      //   History.generalHistoryDatabaseId = jsonResponse['data']['_id'];
+      //   print(History.generalHistoryDatabaseId);
 
-        UserInfo.preferences.setString(
-            'generalHistoryDatabaseId', History.generalHistoryDatabaseId);
-        print("Successfully added item log on database as a new user...");
-      } else {
-        print("Successfully added item log on database");
-      }
+      //   UserInfo.preferences.setString(
+      //       'generalHistoryDatabaseId', History.generalHistoryDatabaseId);
+      //   print("Successfully added item log on database as a new user...");
+      // } else {
+      //   print("Successfully added item log on database");
+      // }
+      print("Successfully added item log on database");
       History.didUserUpdate = true;
     } else {
       print("Failed to add item log on database");
