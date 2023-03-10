@@ -57,11 +57,32 @@ class _CameraState extends State<Camera> {
                 MqttPublishPayload.bytesToStringAsString(
                     receivedPayload.payload.message);
             final String base64Image = base64Encode(binaryImageData.codeUnits);
-            print(base64Image);
-            return Image.memory(
-              base64.decode(base64Image),
-              gaplessPlayback: true,
+            // print(base64Image);
+            // return Image.memory(
+            //   base64.decode(base64Image),
+            //   gaplessPlayback: true,
+            // );
+            return Column(
+              children: [
+                Expanded(
+                  child: Image.memory(
+                    base64.decode(base64Image),
+                    gaplessPlayback: true,
+                    fit: BoxFit.cover, // adjust the fit property as needed
+                  ),
+                ),
+              ],
             );
+
+            /*
+            return Expanded(
+              child: Image.memory(
+                base64.decode(base64Image),
+                gaplessPlayback: true,
+                // fit: BoxFit.cover, // adjust the fit property as needed
+              ),
+            );
+            */
             /*
             final decodedImageBytes = Uint8List.fromList(receivedPayload.payload.message);
             img.Image? jpegImage = img.decodeJpg(decodedImageBytes);

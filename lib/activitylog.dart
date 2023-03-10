@@ -17,14 +17,14 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   @override
   void initState() {
     super.initState();
-    if (History.listOfLogs.isEmpty || History.didUserUpdate) {
-      History.listOfLogs = []; // Reset necessary variables just in case
-      History.didUserUpdate = false;
-      getLogsFromDatabase().then((_) {
-        print("Got logs from the database, updating state now...");
-        setState(() {});
-      });
-    }
+    // if (History.listOfLogs.isEmpty) {
+    History.listOfLogs = []; // Reset necessary variables just in case
+    // History.didUserUpdate = false;
+    getLogsFromDatabase().then((_) {
+      print("Got logs from the database, updating state now...");
+      setState(() {});
+    });
+    // }
   }
 
   getLogsFromDatabase() async {
@@ -186,7 +186,6 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
 
 class History {
   static String generalHistoryDatabaseId = "";
-  static bool didUserUpdate = false;
   // Lists in dart have methods such as .add() and .remove()
   static List<Log> listOfLogs = [
     // ListItem(DateTime(DateTimeService.timeNow.year,

@@ -40,7 +40,6 @@ class _HomepageState extends State<Homepage> {
     // Connect to the MQTT Broker
     if (MQTT.isConnected == false) {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
-      // TODO:  Perform post request to create a record/document within the database
     }
 
     // Get saved contents of schedules
@@ -668,7 +667,7 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
       //   print("Successfully added item log on database");
       // }
       print("Successfully added item log on database");
-      History.didUserUpdate = true;
+      // History.didUserUpdate = true;
     } else {
       print("Failed to add item log on database");
     }

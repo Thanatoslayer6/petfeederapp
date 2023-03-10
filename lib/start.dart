@@ -1,8 +1,10 @@
 import 'dart:async';
-
+import 'dart:convert' as convert;
+import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:esp_smartconfig/esp_smartconfig.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:network_info_plus/network_info_plus.dart';
@@ -271,7 +273,7 @@ Future<int> espSmartConfig() async {
     provisioner.stop();
     print(e);
   }
-  await Future.delayed(const Duration(seconds: 10));
+  await Future.delayed(const Duration(seconds: 8));
   if (didWifiConnect == 0) {
     print("Stopping now, nothing happened in the past 10 seconds");
     didWifiConnect = 1;
@@ -313,7 +315,7 @@ Future<int> validateProductCredentials() async {
   // END PUBLISH DATA
 
   // Wait for about 10 seconds or so...
-  await Future.delayed(const Duration(seconds: 10));
+  await Future.delayed(const Duration(seconds: 5));
   if (isProductValid == 3) {
     isProductValid = 4; // Fail
   }
@@ -423,7 +425,30 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
     if (UserInfo.WifiAuthenticationStatus == 2 &&
         UserInfo.MQTTAuthenticationStatus == -1 &&
         UserInfo.ProductAuthenticationStatus == 5) {
-      print("Success! on initialization");
+      print("Success! on initialization, creating records on database now");
+
+      // Create a schedule document for the user
+      final response1 = await http.post(
+        Uri.parse("${dotenv.env['CRUD_API']}/api/schedule"),
+        body: convert.json.encode({
+          'client': UserInfo.productId,
+          'items': [],
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+      print(response1.body);
+
+      // Create a log document for the user
+      final response2 = await http.post(
+        Uri.parse("${dotenv.env['CRUD_API']}/api/logs"),
+        body: convert.json.encode({
+          'client': UserInfo.productId,
+          'items': [],
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+      print(response2.body);
+
       Timer(const Duration(seconds: 2), () {
         Navigator.of(context).pop(
             true); // Return '-2' which means failure to connect to MQTT broker
