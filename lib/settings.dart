@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings extends StatefulWidget {
@@ -25,6 +26,7 @@ class _SettingsState extends State<Settings> {
   @override
   void initState() {
     super.initState();
+    NotificationAPI.init();
     _getSharedPrefsData();
   }
 
@@ -44,6 +46,15 @@ class _SettingsState extends State<Settings> {
               // Perform any other actions you need after clearing shared preferences
             },
             child: const Text('Clear Data'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              NotificationAPI.show(title: "Hello World", body: "What's up?");
+              // final prefs = await SharedPreferences.getInstance();
+              // await prefs.clear();
+              // Perform any other actions you need after clearing shared preferences
+            },
+            child: const Text('Notify'),
           )
         ],
       ),
