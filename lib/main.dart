@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:petfeederapp/camera.dart';
 import 'package:petfeederapp/settings.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ import 'navigation.dart';
 import 'titlebar.dart';
 import 'homepage.dart';
 import 'time.dart';
+/* import 'notification.dart'; */
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,8 +29,9 @@ Future main() async {
     SystemUiOverlay.bottom, //This line is used for showing the bottom bar
   ]);
 
-  // Start time
+  // Start time, and initialize notification api
   DateTimeService.init();
+  // NotificationAPI.init();
   // Load environment variables
   await dotenv.load(fileName: "assets/.env");
 
@@ -75,49 +78,80 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: StreamBuilder(
-        stream: Connectivity().onConnectivityChanged,
-        builder: ((context, snapshot) {
-          final result = snapshot.data;
-
-          // TODO: Set this condition to false for demoing in order to bypass start screen for new users
-          // if (UserInfo.isUserNew == false) {
-          if (UserInfo.isUserNew == true) {
-            return StartScreen(
-                result: result, updateUserStatus: updateUserStatus);
-          } else {
-            // START (remove this after testing)
-            // UserInfo.productId = "demo1234";
-            // UserInfo.devicePassword = "demo1234";
-            // END
-            if (result == ConnectivityResult.none || result == null) {
-              return const DefaultTabController(
-                length: 3,
-                child: Scaffold(
-                  appBar: TitleBar(),
-                  bottomNavigationBar: Navigation(),
-                  body: TabBarView(children: [
-                    NoInternetConnection(),
-                    NoInternetConnection(),
-                    Settings()
-                  ]),
-                ),
-              );
+      home: WillStartForegroundTask(
+        onWillStart: () async {
+          return true;
+        },
+        androidNotificationOptions: AndroidNotificationOptions(
+          channelId: 'notification_channel_id',
+          channelName: 'Foreground Notification',
+          channelDescription:
+              'This notification appears when the foreground service is running.',
+          channelImportance: NotificationChannelImportance.LOW,
+          priority: NotificationPriority.LOW,
+          iconData: const NotificationIconData(
+            resType: ResourceType.mipmap,
+            resPrefix: ResourcePrefix.ic,
+            name: 'launcher',
+          ),
+        ),
+        iosNotificationOptions: const IOSNotificationOptions(
+          showNotification: true,
+          playSound: false,
+        ),
+        foregroundTaskOptions: const ForegroundTaskOptions(
+          interval: 5000,
+          autoRunOnBoot: false,
+          allowWifiLock: false,
+        ),
+        notificationTitle: 'Foreground Service is running',
+        notificationText: 'Tap to return to the app',
+        callback: () {
+          print("What does this callback do?");
+        },
+        child: StreamBuilder(
+          stream: Connectivity().onConnectivityChanged,
+          builder: ((context, snapshot) {
+            final result = snapshot.data;
+            // TODO: Set this condition to false for demoing in order to bypass start screen for new users
+            if (UserInfo.isUserNew == false) {
+              // if (UserInfo.isUserNew == true) {
+              return StartScreen(
+                  result: result, updateUserStatus: updateUserStatus);
             } else {
-              // Connected to a network...
-              // First we connect to the MQTT Broker
-              return const DefaultTabController(
-                length: 3,
-                child: Scaffold(
-                  appBar: TitleBar(),
-                  bottomNavigationBar: Navigation(),
-                  body:
-                      TabBarView(children: [Homepage(), Camera(), Settings()]),
-                ),
-              );
+              // START (remove this after testing)
+              UserInfo.productId = "demo1234";
+              UserInfo.devicePassword = "demo1234";
+              // END
+              if (result == ConnectivityResult.none || result == null) {
+                return const DefaultTabController(
+                  length: 3,
+                  child: Scaffold(
+                    appBar: TitleBar(),
+                    bottomNavigationBar: Navigation(),
+                    body: TabBarView(children: [
+                      NoInternetConnection(),
+                      NoInternetConnection(),
+                      Settings()
+                    ]),
+                  ),
+                );
+              } else {
+                // Connected to a network...
+                // First we connect to the MQTT Broker
+                return const DefaultTabController(
+                  length: 3,
+                  child: Scaffold(
+                    appBar: TitleBar(),
+                    bottomNavigationBar: Navigation(),
+                    body: TabBarView(
+                        children: [Homepage(), Camera(), Settings()]),
+                  ),
+                );
+              }
             }
-          }
-        }),
+          }),
+        ),
       ),
     );
     // TESTING BELOW

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:petfeederapp/time.dart';
 import 'notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+/* import 'package:timezone/timezone.dart' as tz; */
+/* import 'package:timezone/data/latest.dart' as tz; */
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -16,7 +19,7 @@ class _SettingsState extends State<Settings> {
     final keys = prefs.getKeys();
     String data = '';
     for (var key in keys) {
-      data += '$key : ${prefs.get(key)}\n';
+      data += "$key : ${prefs.get(key)}\n";
     }
     setState(() {
       _sharedPrefsData = data;
@@ -26,7 +29,6 @@ class _SettingsState extends State<Settings> {
   @override
   void initState() {
     super.initState();
-    NotificationAPI.init();
     _getSharedPrefsData();
   }
 
@@ -50,6 +52,8 @@ class _SettingsState extends State<Settings> {
           ElevatedButton(
             onPressed: () async {
               NotificationAPI.show(title: "Hello World", body: "What's up?");
+              // var scheduledTime = DateTimeService.getDateWithHourAndMinuteSet(,);
+              // NotificationAPI.scheduleNotification(title: "This is scheduled", body: "Successfully feeded pet!", timeToShow: scheduledTime);
               // final prefs = await SharedPreferences.getInstance();
               // await prefs.clear();
               // Perform any other actions you need after clearing shared preferences

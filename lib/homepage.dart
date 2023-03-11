@@ -584,6 +584,8 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
     // Send in success log to database
     if (done == true && failed == false) {
       sendInSuccessLogToDatabase();
+    } else {
+      sendInFailLogToDatabase();
     }
 
     super.dispose();
@@ -666,6 +668,30 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
       // } else {
       //   print("Successfully added item log on database");
       // }
+      print("Successfully added item log on database");
+      // History.didUserUpdate = true;
+    } else {
+      print("Failed to add item log on database");
+    }
+  }
+
+  sendInFailLogToDatabase() async {
+    String requestURL =
+        "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
+    String jsonBody = convert.json.encode({
+      'type': "Feed Log",
+      'didFail': true,
+      'duration': _sliderValue.toInt(),
+      'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
+    });
+    print(requestURL);
+    final response = await http.post(Uri.parse(requestURL),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonBody);
+
+    if (response.statusCode == 200) {
       print("Successfully added item log on database");
       // History.didUserUpdate = true;
     } else {
