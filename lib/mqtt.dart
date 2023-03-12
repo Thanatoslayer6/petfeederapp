@@ -38,6 +38,7 @@ class MQTT {
       isConnected = true;
     } else {
       print("Failed to HiveMQ MQTT Broker!");
+      isConnected = false;
       return false;
     }
     return true;

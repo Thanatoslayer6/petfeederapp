@@ -7,6 +7,7 @@ class UserInfo {
   static String? wifiPassword;
   static String? generalScheduleDatabaseId;
   static String? generalHistoryDatabaseId;
+  static bool? isNotificationsEnabled;
   // TODO: Theme preferences in the future
 
   static int MQTTAuthenticationStatus = -3;
@@ -27,6 +28,8 @@ class UserInfo {
         true; // Just set to true if user is new
     productId = preferences.getString('productId');
     devicePassword = preferences.getString('devicePassword');
+    isNotificationsEnabled =
+        preferences.getBool('isNotificationsEnabled') ?? false;
     generalScheduleDatabaseId =
         preferences.getString('generalScheduleDatabaseId');
     generalHistoryDatabaseId =

@@ -1,14 +1,15 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
 import 'dart:convert' as convert;
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:uuid/uuid.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:petfeederapp/mqtt.dart';
+import 'package:uuid/uuid.dart';
 import 'activitylog.dart';
 import 'adaptive.dart';
 import 'time.dart';
@@ -37,11 +38,10 @@ class _HomepageState extends State<Homepage> {
         setState(() {});
       });
     }
-    // Connect to the MQTT Broker
+    // // Connect to the MQTT Broker
     if (MQTT.isConnected == false) {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
     }
-
     // Get saved contents of schedules
     Schedule.loadSchedule();
   }
