@@ -11,6 +11,7 @@ import 'notification.dart';
 import 'preferences.dart';
 
 Future<void> initService() async {
+  // productId = UserInfo.productId ?? "Demo";
   // if (MQTT.isConnected) {
   //   print("MQTT is already connected");
   //   MQTT.client
@@ -50,26 +51,19 @@ Future<void> initService() async {
 void onStart(ServiceInstance service) async {
   // TODO: Literally use another thread with dotenv but different name.... connect to broker then check for stuff
   DartPluginRegistrant.ensureInitialized();
-  // Set up a boolean variable to know if the service is subscribed
-  bool isAlreadySubscribedToTopic = false;
   // Probably use shared preferences and dotenv to connect...
   await dotenv.load(fileName: "assets/.env");
   // SharedPreferences config = SharedPreferences;
   SharedPreferences preferences = await SharedPreferences.getInstance();
-  String productId = preferences.getString('productId') ?? "Demo";
+  String productId = preferences.getString('productId') as String;
   print("The product ID is: $productId");
   if (!MQTT.isConnected) {
     print("Connecting/Reconnecting to MQTT Client");
     // Just connect to the broker with any name for now, since this is a separate thread
-    MQTT.connectToBroker("$productId-notif-${const Uuid().v1()}");
-    MQTT.isConnected = true;
-  }
-
-  if (!isAlreadySubscribedToTopic) {
+    await MQTT.connectToBroker("$productId-notification-${const Uuid().v1()}");
     // Subscribe to the topic
-    print("Subscribing service to necessary topic");
+    print("Subscribing service to necessary topic $productId/notifications");
     MQTT.client.subscribe("$productId/notifications", MqttQos.atMostOnce);
-    isAlreadySubscribedToTopic = true;
   }
 
   if (service is AndroidServiceInstance) {
@@ -95,12 +89,6 @@ void onStart(ServiceInstance service) async {
         print("I'm running in the foreground...");
 
         if (MQTT.isConnected) {
-          print("MQTT is already connected");
-          if (!isAlreadySubscribedToTopic) {
-            MQTT.client
-                .subscribe("$productId/notifications", MqttQos.atMostOnce);
-            isAlreadySubscribedToTopic = true;
-          } else {}
           // Start listening
           MQTT.client.updates!
               .listen((List<MqttReceivedMessage<MqttMessage>> c) {
@@ -114,10 +102,14 @@ void onStart(ServiceInstance service) async {
               NotificationAPI.show(title: "Feeding log", body: "Success!");
             } else if (c[0].topic == "$productId/notifications" &&
                 message == "uv-success") {
+              NotificationAPI.show(title: "UV-Light log", body: "Success!");
             } else if (c[0].topic == "$productId/notifications" &&
                 message == "feed-fail") {
+              NotificationAPI.show(title: "Feeding log", body: "Failed!");
             } else if (c[0].topic == "$productId/notifications" &&
-                message == "uv-fail") {}
+                message == "uv-fail") {
+              NotificationAPI.show(title: "UV-Light log", body: "Failed!");
+            }
           });
         } else {
           print("Not connected so first we connect... implement logic below");

@@ -851,8 +851,8 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
             Slider(
               value: _sliderValue,
               min: 1.0,
-              max: 30.0,
-              divisions: 29,
+              max: 60,
+              divisions: 59,
               onChanged: (newValue) {
                 setState(() {
                   _sliderValue = newValue;
@@ -880,7 +880,8 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
               setState(() {
                 starting = false;
               });
-              _timeoutTimer = Timer(Duration(seconds: 15), () {
+              _timeoutTimer =
+                  Timer(Duration(seconds: _sliderValue.toInt()), () {
                 setState(() {
                   failed = true;
                 });

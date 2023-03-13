@@ -21,6 +21,7 @@ class MQTT {
     client.setProtocolV311();
     client.securityContext = context;
     client.logging(on: false);
+    client.autoReconnect = true;
     client.keepAlivePeriod = 20;
     client.port = 8883;
     client.secure = true;
