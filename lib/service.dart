@@ -10,41 +10,20 @@ import 'mqtt.dart';
 import 'notification.dart';
 import 'preferences.dart';
 
-Future<void> initService() async {
-  // productId = UserInfo.productId ?? "Demo";
-  // if (MQTT.isConnected) {
-  //   print("MQTT is already connected");
-  //   MQTT.client
-  //       .subscribe("${UserInfo.productId}/notifications", MqttQos.atMostOnce);
-
-  //   StreamSubscription subscription =
-  //       MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-  //     final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
-  //     final String message =
-  //         MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-
-  //     if (c[0].topic == "${UserInfo.productId}/notifications" &&
-  //         message == "feed-success") {
-  //       NotificationAPI.show(title: "Feeding log", body: "Success!");
-  //     } else if (c[0].topic == "${UserInfo.productId}/notifications" &&
-  //         message == "uv-success") {
-  //     } else if (c[0].topic == "${UserInfo.productId}/notifications" &&
-  //         message == "feed-fail") {
-  //     } else if (c[0].topic == "${UserInfo.productId}/notifications" &&
-  //         message == "uv-fail") {}
-  //   });
-  // } else {
-  //   print("Not connected so first we connect... implement below");
-  // }
-  final service = FlutterBackgroundService();
-  await service.configure(
-      iosConfiguration: IosConfiguration(),
-      androidConfiguration: AndroidConfiguration(
-          onStart: onStart,
-          isForegroundMode: true,
-          autoStart: true,
-          autoStartOnBoot: true));
-  await service.startService();
+class BackgroundTask {
+  static final service = FlutterBackgroundService();
+  Future<void> initService() async {
+    // final service = FlutterBackgroundService();
+    await service.configure(
+        iosConfiguration: IosConfiguration(),
+        androidConfiguration: AndroidConfiguration(
+            onStart: onStart,
+            isForegroundMode: true,
+            initialNotificationTitle: "Notification Service",
+            autoStart: true,
+            autoStartOnBoot: true));
+    await service.startService();
+  }
 }
 
 @pragma('vm:entry-point')
@@ -80,13 +59,12 @@ void onStart(ServiceInstance service) async {
     });
   }
 
-  Timer.periodic(const Duration(seconds: 2), (timer) async {
+  Timer.periodic(const Duration(seconds: 10), (timer) async {
     if (service is AndroidServiceInstance) {
       if (await service.isForegroundService()) {
         service.setForegroundNotificationInfo(
-            title: "Waiting for next schedule",
-            content: "Updated at ${DateTime.now()}");
-        print("I'm running in the foreground...");
+            title: "Notification Service",
+            content: "Waiting for the next schedule...");
 
         if (MQTT.isConnected) {
           // Start listening

@@ -21,6 +21,10 @@ class MQTT {
     client.setProtocolV311();
     client.securityContext = context;
     client.logging(on: false);
+    client.onConnected = onConnected;
+    client.onDisconnected = onDisconnected;
+    client.onAutoReconnect = onAutoReconnect;
+    client.onAutoReconnected = onAutoReconnected;
     client.autoReconnect = true;
     client.keepAlivePeriod = 20;
     client.port = 8883;
@@ -33,16 +37,6 @@ class MQTT {
     client.connectionMessage = connMess;
 
     await client.connect();
-
-    if (client.connectionStatus!.state == MqttConnectionState.connected) {
-      print("Connected to HiveMQ MQTT Broker successfully!");
-      isConnected = true;
-    } else {
-      print("Failed to HiveMQ MQTT Broker!");
-      isConnected = false;
-      return false;
-    }
-    return true;
   }
 
   static void publish(String topic, String message) {
@@ -52,5 +46,37 @@ class MQTT {
       client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
     }
     return;
+  }
+
+  /// The successful connect callback
+  static void onConnected() {
+    print("Connected to HiveMQ MQTT Broker successfully!");
+    isConnected = true;
+  }
+
+  /// The unsolicited disconnect callback
+  static void onDisconnected() {
+    print('EXAMPLE::OnDisconnected client callback - Client disconnection');
+    isConnected = false;
+    if (client.connectionStatus!.disconnectionOrigin ==
+        MqttDisconnectionOrigin.solicited) {
+      print('EXAMPLE::OnDisconnected callback is solicited, this is correct');
+    } else {
+      print(
+          'EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
+      exit(-1);
+    }
+  }
+
+  /// The pre auto re connect callback
+  static void onAutoReconnect() {
+    print(
+        'EXAMPLE::onAutoReconnect client callback - Client auto reconnection sequence will start');
+  }
+
+  /// The post auto re connect callback
+  static void onAutoReconnected() {
+    print(
+        'EXAMPLE::onAutoReconnected client callback - Client auto reconnection sequence has completed');
   }
 }

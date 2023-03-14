@@ -875,6 +875,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
             child: Text("Enable"),
             onPressed: () {
               // Handle MQTT here
+              print(_sliderValue.toInt() * 60000);
               MQTT.publish("${UserInfo.productId}/uvlight_duration",
                   (_sliderValue.toInt() * 60000).toString());
               setState(() {
