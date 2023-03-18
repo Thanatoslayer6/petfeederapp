@@ -39,6 +39,10 @@ Future main() async {
   if (await Permission.location.request().isGranted) {
     print("Location permissions are granted");
   }
+  // Request microphone permissions for sending audio
+  if (await Permission.microphone.request().isGranted) {
+    print("Microphone permissions are granted");
+  }
 
   runApp(const MyApp());
 }

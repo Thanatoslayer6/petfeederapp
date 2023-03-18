@@ -87,7 +87,7 @@ class _SettingsState extends State<Settings> {
                             BackgroundTask.service.invoke('setAsForeground');
                           } else {
                             UserInfo.preferences
-                                .setBool('IsNotificationsEnabled', false);
+                                .setBool('isNotificationsEnabled', false);
                             BackgroundTask.service.invoke('stopService');
                           }
                           setState(() {

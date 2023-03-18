@@ -1,7 +1,9 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
+import 'dart:io';
 import 'dart:convert' as convert;
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -38,12 +40,23 @@ class _HomepageState extends State<Homepage> {
         setState(() {});
       });
     }
+    // Print out current ip address
+
+    // Start local web server (I know... but this is the only way...  )
+    startServer();
+
     // // Connect to the MQTT Broker
     if (MQTT.isConnected == false) {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
     }
     // Get saved contents of schedules
     Schedule.loadSchedule();
+  }
+
+  startServer() async {
+    var server = await HttpServer.bind("0.0.0.0", 8080);
+    print("Server running on IP : ${server.address} On Port : ${server.port}");
+    print(await NetworkInfo().getWifiIP());
   }
 
   @override
