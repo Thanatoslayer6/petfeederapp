@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 // import 'package:flutter/foundation.dart';
+import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:petfeederapp/mqtt.dart';
 
@@ -54,15 +56,37 @@ class _CameraState extends State<Camera> {
   Future record() async {
     if (!isRecorderReady) return;
 
-    await recorder.startRecorder(toFile: 'voice.mp3');
+    await recorder.startRecorder(toFile: 'voice');
   }
 
   Future stop() async {
     if (!isRecorderReady) return;
-
+        
+    /* final Directory cacheDirectory = await getTemporaryDirectory(); */ 
+    /* cacheDirectory.path; */
+    
     final path = await recorder.stopRecorder();
     final audioFile = File(path!);
     print("Recorded audio is at: $audioFile");
+    // Convert audoi file now to mp3
+    FFmpegKit.execute('-i $audioFile -f mp3').then((session) async {
+      final returnCode = await session.getReturnCode();
+      print(returnCode);
+
+   /* if (ReturnCode.isSuccess(returnCode)) { */
+
+     // SUCCESS
+
+   /* } else if (ReturnCode.isCancel(returnCode)) { */
+
+     // CANCEL
+
+   /* } else { */
+
+     // ERROR
+
+    });
+
   }
 
   @override

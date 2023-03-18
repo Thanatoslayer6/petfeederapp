@@ -55,6 +55,8 @@ dependencies:
   flutter_local_notifications: ^13.0.0
   flutter_background_service: ^2.4.6
   flutter_sound: ^9.2.13
+  shelf_static: ^1.1.1
+  ffmpeg_kit_flutter: ^5.1.0
 
 dev_dependencies:
   flutter_test:

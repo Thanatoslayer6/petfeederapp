@@ -1,8 +1,17 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
+/* import 'dart:io'; */
+/* import 'package:shelf/shelf_io.dart' as shelf_io; */
+/* import 'package:shelf_static/shelf_static.dart'; */
+import 'package:path_provider/path_provider.dart';
+
 import 'dart:io';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_static/shelf_static.dart';
+
 import 'dart:convert' as convert;
-import 'package:flutter_background_service/flutter_background_service.dart';
+/* import 'package:flutter_background_service/flutter_background_service.dart'; */
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -54,9 +63,24 @@ class _HomepageState extends State<Homepage> {
   }
 
   startServer() async {
-    var server = await HttpServer.bind("0.0.0.0", 8080);
-    print("Server running on IP : ${server.address} On Port : ${server.port}");
-    print(await NetworkInfo().getWifiIP());
+    // Get the directory (temporary)    
+    final Directory cacheDirectory = await getTemporaryDirectory();
+
+    final staticHandler = createStaticHandler(cacheDirectory.path);
+    final server = await shelf_io.serve(staticHandler, InternetAddress.anyIPv4, 8080);
+
+    /* final server = await shelf_io.serve((Request request) { */
+    /*   final response = staticHandler(request); */
+    /*   if (response.statusCode == HttpStatus.ok) { */
+    /*     return response.change(contentType: MediaType('audio', 'mpeg')); */
+    /*   } */
+    /*   return response; */
+    /* }, InternetAddress.anyIPv4, 8080); */
+
+    print('Server running on ${server.address}:${server.port}');
+    /* var server = await HttpServer.bind("0.0.0.0", 8080); */
+    /* print("Server running on IP : ${server.address} On Port : ${server.port}"); */
+    /* print(await NetworkInfo().getWifiIP()); */
   }
 
   @override
