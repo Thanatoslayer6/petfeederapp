@@ -2,12 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 
 // import 'package:flutter/foundation.dart';
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+// import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+// import 'package:ffmpeg_kit_flutter/return_code.dart';
+import 'package:ffmpeg_kit_flutter_audio/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_audio/ffmpeg_session.dart';
+import 'package:ffmpeg_kit_flutter_audio/return_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:petfeederapp/mqtt.dart';
+import 'package:uuid/uuid.dart';
 
 import 'preferences.dart';
 // import 'package:image/image.dart' as img;
@@ -22,6 +28,7 @@ class Camera extends StatefulWidget {
 class _CameraState extends State<Camera> {
   late FlutterSoundRecorder recorder;
   bool isRecorderReady = false;
+  bool isConversionSuccessful = false;
   @override
   void initState() {
     super.initState();
@@ -33,6 +40,11 @@ class _CameraState extends State<Camera> {
       MQTT.publish("${UserInfo.productId}/toggle_stream", "on");
       MQTT.client.subscribe("${UserInfo.productId}/stream", MqttQos.atMostOnce);
     }
+
+    if (MQTTPublic.isConnected == false) {
+      // MQTTPublic.connectToBroker("${UserInfo.productId}");
+      MQTTPublic.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
+    }
   }
 
   @override
@@ -42,6 +54,7 @@ class _CameraState extends State<Camera> {
       MQTT.publish("${UserInfo.productId}/toggle_stream", "off");
     }
     recorder.closeRecorder();
+    // recorder.closeAudioSession();
     super.dispose();
   }
 
@@ -55,38 +68,78 @@ class _CameraState extends State<Camera> {
 
   Future record() async {
     if (!isRecorderReady) return;
+    // Record audio in aac format, then convert to mp3 afterwards...
+    await recorder.startRecorder(
+        toFile: 'voice.aac',
+        codec: Codec.aacADTS,
+        numChannels: 2,
+        bitRate: 128000);
+  }
 
-    await recorder.startRecorder(toFile: 'voice');
+  // Function to convert aac format into mp3
+  void convertAACtoMP3(String inputFilePath, String outputFilePath) {
+    /* FFmpeg command starts with '-y' for overwrite, '-i' for input file (next argument)'-b:a' for bitrate
+       and '-ar' for sample rate, then for the last argument the output file path */
+    String ffmpegCommand =
+        "-y -i $inputFilePath -b:a 128k -ar 44100 $outputFilePath";
+
+    FFmpegKit.execute(ffmpegCommand).then((session) async {
+      final returnCode = await session.getReturnCode();
+      if (ReturnCode.isSuccess(returnCode)) {
+        print("Conversion successful");
+        isConversionSuccessful = true;
+
+        if (isConversionSuccessful) {
+          // Once done, we will send in the audio url
+          if (MQTTPublic.isConnected) {
+            String? serverIp = await NetworkInfo().getWifiIP(); // Get local ip
+            String? audioURL = "http://$serverIp:8080/voice.mp3";
+            print(audioURL);
+            MQTTPublic.publish(
+                "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
+                audioURL);
+            // Once successful and done we reset the flag
+            isConversionSuccessful = false;
+          }
+        }
+
+        // return;
+      } else if (ReturnCode.isCancel(returnCode)) {
+        print("Conversion cancelled");
+        isConversionSuccessful = false;
+        // return;
+      } else {
+        print("Conversion failed");
+        isConversionSuccessful = false;
+        // return;
+      }
+    });
   }
 
   Future stop() async {
     if (!isRecorderReady) return;
-        
-    /* final Directory cacheDirectory = await getTemporaryDirectory(); */ 
-    /* cacheDirectory.path; */
-    
+
+    final Directory cacheDirectory = await getTemporaryDirectory();
     final path = await recorder.stopRecorder();
     final audioFile = File(path!);
-    print("Recorded audio is at: $audioFile");
-    // Convert audoi file now to mp3
-    FFmpegKit.execute('-i $audioFile -f mp3').then((session) async {
-      final returnCode = await session.getReturnCode();
-      print(returnCode);
-
-   /* if (ReturnCode.isSuccess(returnCode)) { */
-
-     // SUCCESS
-
-   /* } else if (ReturnCode.isCancel(returnCode)) { */
-
-     // CANCEL
-
-   /* } else { */
-
-     // ERROR
-
-    });
-
+    print("Recorded audio is at: $audioFile, converting to mp3 now...");
+    convertAACtoMP3(audioFile.path, "${cacheDirectory.path}/voice.mp3");
+    // Check if conversion is successful via the global flag
+    /*
+    if (isConversionSuccessful) {
+      print("$isConversionSuccessful true to so nasa loob");
+      // Once done, we will send in the audio url
+      if (MQTTPublic.isConnected) {
+        String? serverIp = await NetworkInfo().getWifiIP(); // Get local ip
+        String? audioURL = "http://$serverIp:8080/voice.mp3";
+        print(audioURL);
+        MQTTPublic.publish(
+            "${UserInfo.productId}/${UserInfo.devicePassword}/audio", audioURL);
+        // Once successful and done we reset the flag
+        isConversionSuccessful = false;
+      }
+    }
+    */
   }
 
   @override

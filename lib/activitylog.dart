@@ -56,6 +56,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
               jsonParsedData['items'][i]['duration']));
         }
       }
+      //print(History);
     } else {
       print("User doesn't have any logs within the database...");
     }

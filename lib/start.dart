@@ -355,10 +355,9 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
   Future<void> mqttConfiguration() async {
     // Check if it's still not connected to the broker
     if (MQTT.isConnected == false) {
-      bool status = await MQTT
-          .connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
+      await MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
       setState(() {
-        if (status == true) {
+        if (MQTT.isConnected == true) {
           UserInfo.MQTTAuthenticationStatus = -1; // Successful connection
         } else {
           UserInfo.MQTTAuthenticationStatus = -2; // Failed to connect

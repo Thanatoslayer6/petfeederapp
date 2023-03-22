@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'mqtt.dart';
 import 'notification.dart';
 import 'preferences.dart';
+import 'time.dart';
 
 class BackgroundTask {
   static final service = FlutterBackgroundService();
@@ -77,16 +78,32 @@ void onStart(ServiceInstance service) async {
 
             if (c[0].topic == "$productId/notifications" &&
                 message == "feed-success") {
-              NotificationAPI.show(title: "Feeding log", body: "Success!");
+              NotificationAPI.show(
+                  title:
+                      "Feed | ${DateTimeService.getCurrentDateTimeFormatted()}",
+                  body: "Successful task!");
             } else if (c[0].topic == "$productId/notifications" &&
                 message == "uv-success") {
-              NotificationAPI.show(title: "UV-Light log", body: "Success!");
+              NotificationAPI.show(
+                  title:
+                      "UV-Light | ${DateTimeService.getCurrentDateTimeFormatted()}",
+                  body: "Successful task!");
             } else if (c[0].topic == "$productId/notifications" &&
                 message == "feed-fail") {
-              NotificationAPI.show(title: "Feeding log", body: "Failed!");
+              // NotificationAPI.show(title: "Feeding log", body: "Failed!");
+
+              NotificationAPI.show(
+                  title:
+                      "Feed | ${DateTimeService.getCurrentDateTimeFormatted()}",
+                  body: "Failed task!");
             } else if (c[0].topic == "$productId/notifications" &&
                 message == "uv-fail") {
-              NotificationAPI.show(title: "UV-Light log", body: "Failed!");
+              // NotificationAPI.show(title: "UV-Light log", body: "Failed!");
+
+              NotificationAPI.show(
+                  title:
+                      "UV-Light | ${DateTimeService.getCurrentDateTimeFormatted()}",
+                  body: "Failed task!");
             }
           });
         } else {

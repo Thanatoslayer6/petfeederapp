@@ -44,6 +44,15 @@ Future main() async {
     print("Microphone permissions are granted");
   }
 
+  // Request storage perms
+  if (await Permission.storage.request().isGranted) {
+    print("Storage permissions are granted!");
+  }
+  if (await Permission.manageExternalStorage.request().isGranted) {
+    print("External storage now granted");
+  }
+  // await Permission.storage.request();
+  // await Permission.manageExternalStorage.request();
   runApp(const MyApp());
 }
 
@@ -76,7 +85,7 @@ class _MyAppState extends State<MyApp> {
     final app = UserInfo();
     await app.initializeSharedPreferences();
     app.getStoredData();
-    UserInfo.preferences.setString('productId', "demo1234");
+    UserInfo.preferences.setString('productId', "beta12345");
     // Start the notification service...
   }
 
@@ -95,8 +104,8 @@ class _MyAppState extends State<MyApp> {
                 result: result, updateUserStatus: updateUserStatus);
           } else {
             // START (remove this after testing)
-            UserInfo.productId = "demo1234";
-            UserInfo.devicePassword = "demo1234";
+            UserInfo.productId = "beta12345";
+            UserInfo.devicePassword = "beta12345";
             // END
             if (result == ConnectivityResult.none || result == null) {
               return const DefaultTabController(

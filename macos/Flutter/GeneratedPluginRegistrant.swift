@@ -6,7 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import connectivity_plus
-import ffmpeg_kit_flutter
+import ffmpeg_kit_flutter_audio
 import flutter_local_notifications
 import network_info_plus
 import path_provider_foundation

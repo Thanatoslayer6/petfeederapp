@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'dart:io';
 import 'package:shelf/shelf.dart';
+import 'package:mime/mime.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_static/shelf_static.dart';
 
@@ -30,6 +31,7 @@ import 'preferences.dart';
 
 class Homepage extends StatefulWidget {
   static bool wentToSchedule = false;
+  static bool isLocalServerRunning = false;
   // ignore: prefer_typing_uninitialized_variables
   static var activeSchedules;
   const Homepage({super.key});
@@ -52,32 +54,44 @@ class _HomepageState extends State<Homepage> {
     // Print out current ip address
 
     // Start local web server (I know... but this is the only way...  )
-    startServer();
+    if (!Homepage.isLocalServerRunning) {
+      startServer();
+    }
 
-    // // Connect to the MQTT Broker
+    // // // Connect to the Private MQTT Broker
     if (MQTT.isConnected == false) {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
     }
+
+    // if (MQTT.isConnected == false) {
+    //   MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
+    // }
+
     // Get saved contents of schedules
     Schedule.loadSchedule();
   }
 
   startServer() async {
-    // Get the directory (temporary)    
+    // Get the directory (temporary)
     final Directory cacheDirectory = await getTemporaryDirectory();
+    final staticHandler = createStaticHandler(cacheDirectory.path,
+        useHeaderBytesForContentType: true);
+    final server = await shelf_io.serve(
+      staticHandler,
+      InternetAddress.anyIPv4,
+      8080,
+    );
 
-    final staticHandler = createStaticHandler(cacheDirectory.path);
-    final server = await shelf_io.serve(staticHandler, InternetAddress.anyIPv4, 8080);
-
-    /* final server = await shelf_io.serve((Request request) { */
-    /*   final response = staticHandler(request); */
-    /*   if (response.statusCode == HttpStatus.ok) { */
-    /*     return response.change(contentType: MediaType('audio', 'mpeg')); */
-    /*   } */
-    /*   return response; */
-    /* }, InternetAddress.anyIPv4, 8080); */
+    // final server = await shelf_io.serve((Request request) {
+    //   final response = staticHandler(request);
+    //   if (response. == HttpStatus.ok) {
+    //     return response.change(contentType: MediaType('audio', 'mpeg'));
+    //   }
+    //   return response;
+    // }, InternetAddress.anyIPv4, 8080);
 
     print('Server running on ${server.address}:${server.port}');
+    Homepage.isLocalServerRunning = true;
     /* var server = await HttpServer.bind("0.0.0.0", 8080); */
     /* print("Server running on IP : ${server.address} On Port : ${server.port}"); */
     /* print(await NetworkInfo().getWifiIP()); */
@@ -439,8 +453,6 @@ class _HomepageState extends State<Homepage> {
                   fontFamily: "Poppins",
                   fontSize: getadaptiveTextSize(context, 12)),
             )),
-
-        // AUTHOR
         Container(
             // color: Colors.orange,
             padding: EdgeInsets.all(8),
@@ -840,6 +852,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
   @override
   void initState() {
     super.initState();
+
     // Listen for MQTT messages
     // Subscribe to the needed topic
     MQTT.client.subscribe(
@@ -856,8 +869,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
           failed = false;
           done = true;
           // Close the dialog
-          // Wait for the dispense to finish then pop out the context saying "Success"
-          Timer(Duration(seconds: _sliderValue.toInt()), () {
+          Timer(Duration(seconds: 5), () {
             Navigator.of(context).pop();
           });
         });
@@ -912,9 +924,11 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
             child: Text("Enable"),
             onPressed: () {
               // Handle MQTT here
-              print(_sliderValue.toInt() * 60000);
+              // print(_sliderValue.toInt() * 60000);
+              int durationInMs = _sliderValue.toInt() * 60000;
+              print(durationInMs);
               MQTT.publish("${UserInfo.productId}/uvlight_duration",
-                  (_sliderValue.toInt() * 60000).toString());
+                  durationInMs.toString());
               setState(() {
                 starting = false;
               });

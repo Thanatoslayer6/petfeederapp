@@ -79,11 +79,11 @@ class _SettingsState extends State<Settings> {
                     child: Switch(
                         value: serviceStatus,
                         onChanged: (value) async {
-                          UserInfo.preferences
-                              .setBool('isNotificationsEnabled', true);
                           if (value) {
                             print("Enabling notifications...");
                             await BackgroundTask().initService();
+                            UserInfo.preferences
+                                .setBool('isNotificationsEnabled', true);
                             BackgroundTask.service.invoke('setAsForeground');
                           } else {
                             UserInfo.preferences
@@ -91,6 +91,7 @@ class _SettingsState extends State<Settings> {
                             BackgroundTask.service.invoke('stopService');
                           }
                           setState(() {
+                            UserInfo.isNotificationsEnabled = value;
                             serviceStatus = value;
                           });
                         }),
