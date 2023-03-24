@@ -606,28 +606,6 @@ class Schedule {
     return File('$path/schedule.json');
   }
 
-  /*
-  static Future<void> saveSchedule() async {
-    final file = await _getFile();
-    final List<Map<String, dynamic>> jsonList =
-        Schedule.listOfTimes.map((item) => item.toJson()).toList();
-    final jsonString = convert.json.encode(jsonList);
-    await file.writeAsString(jsonString);
-  }
-
-  static Future<void> loadSchedule() async {
-    try {
-      final file = await _getFile();
-      final contents = await file.readAsString();
-      final json = jsonDecode(contents);
-      final items = json.map((e) => ListItem<>(e)).toList();
-      listOfTimes.clear();
-      listOfTimes.addAll(items);
-    } catch (e) {
-      print('Error loading schedule: $e');
-    }
-  }
-  */
   static Future<void> saveSchedule() async {
     final file = await _getFile();
     final jsonList = Schedule.listOfTimes.map((e) => e.toJson()).toList();

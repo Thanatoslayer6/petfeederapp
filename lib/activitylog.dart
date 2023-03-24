@@ -111,7 +111,6 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Row(
-              // mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   child: History.listOfLogs[index].didFail == true

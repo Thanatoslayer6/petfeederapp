@@ -74,27 +74,19 @@ class _HomepageState extends State<Homepage> {
   startServer() async {
     // Get the directory (temporary)
     final Directory cacheDirectory = await getTemporaryDirectory();
-    final staticHandler = createStaticHandler(cacheDirectory.path,
-        useHeaderBytesForContentType: true);
+    final cacheHandler = createStaticHandler(
+      cacheDirectory.path,
+      useHeaderBytesForContentType: true,
+      listDirectories: true,
+    );
     final server = await shelf_io.serve(
-      staticHandler,
+      cacheHandler,
       InternetAddress.anyIPv4,
       8080,
     );
-
-    // final server = await shelf_io.serve((Request request) {
-    //   final response = staticHandler(request);
-    //   if (response. == HttpStatus.ok) {
-    //     return response.change(contentType: MediaType('audio', 'mpeg'));
-    //   }
-    //   return response;
-    // }, InternetAddress.anyIPv4, 8080);
-
-    print('Server running on ${server.address}:${server.port}');
+    print(
+        'Server running on ${await NetworkInfo().getWifiIP()}:${server.port}');
     Homepage.isLocalServerRunning = true;
-    /* var server = await HttpServer.bind("0.0.0.0", 8080); */
-    /* print("Server running on IP : ${server.address} On Port : ${server.port}"); */
-    /* print(await NetworkInfo().getWifiIP()); */
   }
 
   @override

@@ -15,6 +15,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:petfeederapp/mqtt.dart';
 import 'package:uuid/uuid.dart';
 
+import 'music.dart';
 import 'preferences.dart';
 // import 'package:image/image.dart' as img;
 
@@ -27,8 +28,10 @@ class Camera extends StatefulWidget {
 
 class _CameraState extends State<Camera> {
   late FlutterSoundRecorder recorder;
+  static bool isMusicPlaying = false;
   bool isRecorderReady = false;
   bool isConversionSuccessful = false;
+
   @override
   void initState() {
     super.initState();
@@ -124,22 +127,6 @@ class _CameraState extends State<Camera> {
     final audioFile = File(path!);
     print("Recorded audio is at: $audioFile, converting to mp3 now...");
     convertAACtoMP3(audioFile.path, "${cacheDirectory.path}/voice.mp3");
-    // Check if conversion is successful via the global flag
-    /*
-    if (isConversionSuccessful) {
-      print("$isConversionSuccessful true to so nasa loob");
-      // Once done, we will send in the audio url
-      if (MQTTPublic.isConnected) {
-        String? serverIp = await NetworkInfo().getWifiIP(); // Get local ip
-        String? audioURL = "http://$serverIp:8080/voice.mp3";
-        print(audioURL);
-        MQTTPublic.publish(
-            "${UserInfo.productId}/${UserInfo.devicePassword}/audio", audioURL);
-        // Once successful and done we reset the flag
-        isConversionSuccessful = false;
-      }
-    }
-    */
   }
 
   @override
@@ -178,19 +165,73 @@ class _CameraState extends State<Camera> {
             }
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-            onPressed: () async {
-              if (recorder.isRecording) {
-                await stop();
-              } else {
-                await record();
-              }
-              setState(() {});
-            },
-            label: recorder.isRecording ? Text("Stop") : Text("Speak"),
-            icon: Icon(
-              recorder.isRecording ? Icons.stop : Icons.mic,
-              size: 32,
-            )));
+        // PLAY MUSIC BUTTON
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(left: 30),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            FloatingActionButton.extended(
+                heroTag: "musicBtn",
+                backgroundColor: isMusicPlaying
+                    ? const Color.fromARGB(200, 33, 31, 103)
+                    : Colors.blueGrey.shade400,
+                onPressed: recorder.isRecording == true
+                    ? null
+                    : () {
+                        if (isMusicPlaying) {
+                          if (MQTTPublic.isConnected) {
+                            MQTTPublic.publish(
+                                "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
+                                "stop");
+                            // Once successful and done we reset the flag
+                            print("stopping the music!");
+                            setState(() {
+                              isMusicPlaying = false;
+                            });
+                          }
+                        } else {
+                          Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const MusicPage()))
+                              .then((status) {
+                            // // Simply update page after exiting the page
+                            setState(() {
+                              isMusicPlaying = status;
+                            });
+                          });
+                        }
+                      },
+                label:
+                    isMusicPlaying ? const Text("Stop") : const Text("Music"),
+                icon: Icon(
+                  isMusicPlaying
+                      ? Icons.music_off_rounded
+                      : Icons.music_note_rounded,
+                  size: 32,
+                )),
+            Expanded(child: Container()),
+            // SPEAK BUTTON
+            FloatingActionButton.extended(
+                heroTag: "speakBtn",
+                backgroundColor: recorder.isRecording
+                    ? const Color.fromARGB(200, 33, 31, 103)
+                    : Colors.blueGrey.shade400,
+                onPressed: isMusicPlaying
+                    ? null
+                    : () async {
+                        if (recorder.isRecording) {
+                          await stop();
+                        } else {
+                          await record();
+                        }
+                        setState(() {});
+                      },
+                label: recorder.isRecording ? Text("Stop") : Text("Speak"),
+                icon: Icon(
+                  recorder.isRecording ? Icons.stop : Icons.mic,
+                  size: 32,
+                )),
+          ]),
+        ));
   }
 }
