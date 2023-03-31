@@ -8,7 +8,7 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
-  var activeColor = const Color.fromARGB(255, 33, 31, 103);
+  // var activeColor = Theme.of(context).primaryColor;
   var inactiveColor = const Color.fromARGB(255, 204, 204, 204);
 
   @override
@@ -19,13 +19,16 @@ class _NavigationState extends State<Navigation> with TickerProviderStateMixin {
         highlightColor: Colors.transparent,
       ),
       child: TabBar(
-        labelColor: activeColor,
-        unselectedLabelColor: inactiveColor,
+        labelColor: Theme.of(context).primaryColor,
+        unselectedLabelColor: Theme.of(context).disabledColor,
         splashFactory: NoSplash.splashFactory,
         labelStyle: const TextStyle(
             fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
         // This runs a custom indicator design
-        indicator: const CustomTabIndicator(radius: 10, indicatorHeight: 10),
+        indicator: CustomTabIndicator(
+            radius: 10,
+            indicatorHeight: 10,
+            color: Theme.of(context).primaryColor),
         labelPadding: const EdgeInsets.only(bottom: 6),
         tabs: const [
           Tab(icon: Icon(Icons.home_filled), text: 'Homepage'),
@@ -47,7 +50,7 @@ class CustomTabIndicator extends Decoration {
   const CustomTabIndicator({
     required this.radius,
     required this.indicatorHeight,
-    this.color = const Color.fromARGB(255, 33, 31, 103),
+    required this.color,
   });
 
   @override

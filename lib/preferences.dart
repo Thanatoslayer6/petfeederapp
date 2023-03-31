@@ -8,6 +8,7 @@ class UserInfo {
   static String? generalScheduleDatabaseId;
   static String? generalHistoryDatabaseId;
   static bool? isNotificationsEnabled;
+  static bool isUVLightActivated = false;
   // TODO: Theme preferences in the future
 
   static int MQTTAuthenticationStatus = -3;

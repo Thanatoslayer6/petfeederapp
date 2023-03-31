@@ -22,7 +22,7 @@ class TitleBar extends StatelessWidget implements PreferredSizeWidget {
               child: Text(
                 "CleverFeeder",
                 style: TextStyle(
-                    color: const Color.fromARGB(255, 33, 31, 103),
+                    color: Theme.of(context).primaryColor,
                     fontFamily: 'Poppins',
                     fontSize: getadaptiveTextSize(context, 20),
                     fontWeight: FontWeight.bold),
@@ -56,7 +56,8 @@ class ClockWidget extends StatelessWidget {
                 .format(DateTimeService.timeNow),
             textAlign: TextAlign.left,
             style: TextStyle(
-                color: const Color.fromARGB(255, 33, 31, 103),
+                // color: const Color.fromARGB(255, 33, 31, 103),
+                color: Theme.of(context).primaryColor,
                 fontSize: getadaptiveTextSize(context, 14),
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w400));

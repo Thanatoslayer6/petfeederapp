@@ -49,7 +49,7 @@ class _StartScreenState extends State<StartScreen> {
                     bottom: getadaptiveTextSize(context, 16)),
                 child: SvgPicture.asset('assets/images/logo.svg',
                     semanticsLabel: 'ClevTech Logo',
-                    color: const Color.fromARGB(255, 42, 39, 150),
+                    color: Theme.of(context).secondaryHeaderColor,
                     width: 128,
                     height: 128),
               ),
@@ -58,17 +58,20 @@ class _StartScreenState extends State<StartScreen> {
                 child: Text("Welcome to CleverFeeder!",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: const Color.fromARGB(255, 33, 31, 103),
+                        color: Theme.of(context).primaryColor,
                         fontFamily: 'Poppins',
                         fontSize: getadaptiveTextSize(context, 32),
                         fontWeight: FontWeight.bold)),
               ),
               Container(
                 padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
-                child: Text("One Time Setup - Please fill out all the fields",
+                child: Text(
+                    "One Time Setup - Please fill out all the fields, and enable location from your phone",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: const Color.fromARGB(255, 33, 31, 103),
+                        // color: const Color.fromARGB(255, 33, 31, 103),
+
+                        color: Theme.of(context).primaryColor,
                         fontFamily: 'Poppins',
                         fontSize: getadaptiveTextSize(context, 14),
                         fontWeight: FontWeight.w300)),
@@ -87,14 +90,7 @@ class _StartScreenState extends State<StartScreen> {
                   textInputAction: TextInputAction.done,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: const InputDecoration(
-                      focusedBorder: OutlineInputBorder(
-                        // width: 0.0 produces a thin "hairline" border
-                        borderSide: BorderSide(
-                            color: Color.fromARGB(255, 33, 31, 103),
-                            width: 2.0),
-                      ),
-                      hintText: "Product ID",
-                      border: OutlineInputBorder()),
+                      hintText: "Product ID", border: OutlineInputBorder()),
                 ),
               ),
               Padding(
@@ -114,14 +110,13 @@ class _StartScreenState extends State<StartScreen> {
                   textInputAction: TextInputAction.done,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: const InputDecoration(
-                      hintText: "Device Password",
+                      hintText: "Product Password",
                       errorMaxLines: 2,
-                      focusedBorder: OutlineInputBorder(
-                        // width: 0.0 produces a thin "hairline" border
-                        borderSide: BorderSide(
-                            color: Color.fromARGB(255, 33, 31, 103),
-                            width: 2.0),
-                      ),
+                      // focusedBorder: OutlineInputBorder(
+                      //   // width: 0.0 produces a thin "hairline" border
+                      //   borderSide: BorderSide(
+                      //       color: Theme.of(context).primaryColor, width: 2.0),
+                      // ),
                       border: OutlineInputBorder()),
                 ),
               ),
@@ -141,12 +136,13 @@ class _StartScreenState extends State<StartScreen> {
                   obscureText: _wifiPassVisibility,
                   decoration: InputDecoration(
                       errorMaxLines: 2,
-                      focusedBorder: const OutlineInputBorder(
-                        // width: 0.0 produces a thin "hairline" border
-                        borderSide: BorderSide(
-                            color: Color.fromARGB(255, 33, 31, 103),
-                            width: 2.0),
-                      ),
+                      // focusedBorder: OutlineInputBorder(
+                      //   // width: 0.0 produces a thin "hairline" border
+                      //   borderSide: BorderSide(
+                      //       // color: Color.fromARGB(255, 33, 31, 103),
+                      //       color: Theme.of(context).primaryColor,
+                      //       width: 2.0),
+                      // ),
                       hintText: "Wi-Fi Password",
                       helperText:
                           "Wi-Fi password of the network you're connected to",
@@ -158,10 +154,14 @@ class _StartScreenState extends State<StartScreen> {
                             });
                           },
                           icon: _wifiPassVisibility
-                              ? const Icon(Icons.visibility_off,
-                                  color: Color.fromARGB(200, 33, 31, 103))
-                              : const Icon(Icons.visibility,
-                                  color: Color.fromARGB(200, 33, 31, 103))),
+                              ? Icon(
+                                  Icons.visibility_off,
+                                  color: Theme.of(context).primaryColor,
+                                )
+                              : Icon(
+                                  Icons.visibility,
+                                  color: Theme.of(context).primaryColor,
+                                )),
                       border: const OutlineInputBorder()),
                 ),
               ),
@@ -188,12 +188,22 @@ class _StartScreenState extends State<StartScreen> {
                             devicePasswordInputController.text;
                         UserInfo.wifiPassword =
                             wifiPasswordInputController.text;
-
-                        showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) => const ConnectingDialog())
-                            .then((value) {
+                        // TODO: Copy the animation here from other places
+                        showGeneralDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          pageBuilder: (context, a1, a2) {
+                            return Container();
+                          },
+                          transitionBuilder: (ctx, a1, a2, child) {
+                            var curve = Curves.easeInOut.transform(a1.value);
+                            return Transform.scale(
+                              scale: curve,
+                              child: const ConnectingDialog(),
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 500),
+                        ).then((value) {
                           setState(() {});
                           if (value == -2) {
                             // MQTT CONNECTION FAIL
@@ -222,16 +232,15 @@ class _StartScreenState extends State<StartScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 33, 31, 103),
+                    // backgroundColor: const Color.fromARGB(255, 33, 31, 103),
+                    backgroundColor: Theme.of(context).secondaryHeaderColor,
                     padding: const EdgeInsets.only(top: 16, bottom: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                   ),
                   child: Text("CONTINUE",
                       style: TextStyle(
-                          // color: const Color.fromARGB(255, 33, 31, 103),
-
-                          color: const Color.fromARGB(255, 243, 243, 243),
+                          color: Theme.of(context).scaffoldBackgroundColor,
                           fontFamily: 'Poppins',
                           fontSize: getadaptiveTextSize(context, 16),
                           letterSpacing: 6.0,
@@ -469,12 +478,10 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Beautify use AnimatedSwitcher, use icons next to textfield
     return AlertDialog(
-      title: const Text("Provisioning Status"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+        title: Text("Provisioning Status",
+            style: TextStyle(color: Theme.of(context).primaryColor)),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -482,14 +489,15 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
                 height: 32,
                 width: 32,
                 child: (UserInfo.WifiAuthenticationStatus == 0) // Loading
-                    ? const CircularProgressIndicator(
-                        backgroundColor: Colors.green,
+                    ? CircularProgressIndicator(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        color: Theme.of(context).secondaryHeaderColor,
                       )
                     : (UserInfo.WifiAuthenticationStatus == 1) // Fail
                         ? const Icon(Icons.warning_rounded)
-                        : const Icon(
+                        : Icon(
                             Icons.check_rounded,
-                            size: 32,
+                            color: Theme.of(context).secondaryHeaderColor,
                           ),
               ),
               Container(
@@ -507,18 +515,23 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(
-                  height: 32,
-                  width: 32,
-                  child: (UserInfo.MQTTAuthenticationStatus == -3) // Loading
-                      ? const CircularProgressIndicator(
-                          backgroundColor: Colors.green,
-                        )
-                      : (UserInfo.MQTTAuthenticationStatus == -2) // Failed
-                          ? const Icon(Icons.warning_rounded) // Fail
-                          : const Icon(
-                              Icons.check_rounded,
-                              size: 32,
-                            )),
+                height: 32,
+                width: 32,
+                child: (UserInfo.MQTTAuthenticationStatus == -3) // Loading
+                    ? CircularProgressIndicator(
+                        // backgroundColor: Colors.green,
+                        color: Theme.of(context).secondaryHeaderColor,
+                        backgroundColor: Theme.of(context).primaryColor,
+                      )
+                    : (UserInfo.ProductAuthenticationStatus == 4) // Fail
+                        ? const Icon(Icons.warning_rounded)
+                        : Icon(
+                            // Fail
+                            Icons.check_rounded,
+                            color: Theme.of(context).secondaryHeaderColor,
+                            size: 32,
+                          ),
+              ),
               Container(
                   padding: const EdgeInsets.only(left: 16, bottom: 16, top: 16),
                   child:
@@ -536,13 +549,16 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
                 height: 32,
                 width: 32,
                 child: (UserInfo.ProductAuthenticationStatus == 3) // Loading
-                    ? const CircularProgressIndicator(
-                        backgroundColor: Colors.green,
+                    ? CircularProgressIndicator(
+                        // backgroundColor: Colors.green,
+                        color: Theme.of(context).secondaryHeaderColor,
+                        backgroundColor: Theme.of(context).primaryColor,
                       )
                     : (UserInfo.ProductAuthenticationStatus == 4) // Fail
                         ? const Icon(Icons.warning_rounded)
-                        : const Icon(
+                        : Icon(
                             Icons.check_rounded,
+                            color: Theme.of(context).secondaryHeaderColor,
                             size: 32,
                           ),
               ),
@@ -557,8 +573,6 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
                   )),
             ],
           ),
-        ],
-      ),
-    );
+        ]));
   }
 }

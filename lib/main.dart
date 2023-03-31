@@ -2,11 +2,10 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:petfeederapp/service.dart';
+import 'package:petfeederapp/theme.dart';
 import 'notification.dart';
 import 'start.dart';
 import 'adaptive.dart';
@@ -64,6 +63,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // ThemeData currentTheme = ThemeManager().currentTheme;
   // This method will be used for updating user status
   void updateUserStatus(bool status) {
     UserInfo.isUserNew = status;
@@ -85,27 +85,29 @@ class _MyAppState extends State<MyApp> {
     final app = UserInfo();
     await app.initializeSharedPreferences();
     app.getStoredData();
-    UserInfo.preferences.setString('productId', "beta12345");
+    // UserInfo.preferences.setString('productId', "beta12345");
     // Start the notification service...
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // theme: currentTheme,
+      theme: dark,
       debugShowCheckedModeBanner: false,
       home: StreamBuilder(
         stream: Connectivity().onConnectivityChanged,
         builder: ((context, snapshot) {
           final result = snapshot.data;
           // TODO: Set this condition to false for demoing in order to bypass start screen for new users
-          if (UserInfo.isUserNew == false) {
-            // if (UserInfo.isUserNew == true) {
+          // if (UserInfo.isUserNew == false) {
+          if (UserInfo.isUserNew == true) {
             return StartScreen(
                 result: result, updateUserStatus: updateUserStatus);
           } else {
             // START (remove this after testing)
-            UserInfo.productId = "beta12345";
-            UserInfo.devicePassword = "beta12345";
+            // UserInfo.productId = "beta12345";
+            // UserInfo.devicePassword = "beta12345";
             // END
             if (result == ConnectivityResult.none || result == null) {
               return const DefaultTabController(

@@ -1,9 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
-/* import 'dart:io'; */
-/* import 'package:shelf/shelf_io.dart' as shelf_io; */
-/* import 'package:shelf_static/shelf_static.dart'; */
 import 'package:path_provider/path_provider.dart';
+import 'package:petfeederapp/uvlight.dart';
 
 import 'dart:io';
 import 'package:shelf/shelf.dart';
@@ -41,6 +39,8 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+  Timer? setStateEveryMinute;
+
   @override
   void initState() {
     super.initState();
@@ -51,7 +51,6 @@ class _HomepageState extends State<Homepage> {
         setState(() {});
       });
     }
-    // Print out current ip address
 
     // Start local web server (I know... but this is the only way...  )
     if (!Homepage.isLocalServerRunning) {
@@ -63,12 +62,22 @@ class _HomepageState extends State<Homepage> {
       MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
     }
 
-    // if (MQTT.isConnected == false) {
-    //   MQTT.connectToBroker("${UserInfo.productId}-${const Uuid().v1()}");
-    // }
-
     // Get saved contents of schedules
     Schedule.loadSchedule();
+    UVLightHandler().getStateFromFile();
+    setStateEveryMinute = Timer.periodic(const Duration(seconds: 10), (timer) {
+      print("Called 'setState()'");
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    if (setStateEveryMinute != null) {
+      setStateEveryMinute!.cancel();
+      setStateEveryMinute = null;
+    }
+    super.dispose();
   }
 
   startServer() async {
@@ -150,7 +159,6 @@ class _HomepageState extends State<Homepage> {
           modeIdentifierWidget(context, false),
           // ignore: avoid_unnecessary_containers
           Container(
-            // color: Colors.red,
             child: Row(
               // mainAxisAlignment: MainAxisAlignment.sp,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -160,25 +168,15 @@ class _HomepageState extends State<Homepage> {
                     children: [
                       // GREETING HEADER
                       Container(
-                        // color: Colors.yellow,
-                        // alignment: Alignment.centerLeft,
                         margin: EdgeInsets.only(top: 16, bottom: 8),
                         child: Text(greeting(),
                             style: TextStyle(
-                                color: const Color.fromARGB(255, 33, 31, 103),
+                                color: Theme.of(context).primaryColor,
                                 fontFamily: 'Poppins',
                                 fontSize: getadaptiveTextSize(context, 48),
                                 fontWeight: FontWeight.bold)),
                       ),
-                      // isQuoteAlreadyAnimated == true ? animateQuote(false) : animateQuote(true),
-                      // Some ternary condition superiority is shown xD
-                      // ...((Quotes.isAlreadyAnimated == true)
-                      //     ? animateQuote(false)
-                      //     : animateQuote(true)),
                       ...animateQuote(),
-                      // isQuoteAlreadyAnimated == true
-                      //     ? animateQuote(false)
-                      //     : animateQuote(true),
                       feedButtonWidget(context)
                     ],
                   ),
@@ -188,9 +186,7 @@ class _HomepageState extends State<Homepage> {
           ),
           // BUTTONS BELOW,
           setScheduleButtonWidget(), // Set schedule
-          // feedButtonWidget(context), // DISABLE FEED ME FOR NOW....
           uvLightButtonWidget(), // Enable/Disable uv light
-          // setModeButtonWidget()
           activityLogButtonWidget(),
         ]
       ],
@@ -235,7 +231,6 @@ class _HomepageState extends State<Homepage> {
     // Schedule.scheduleIsSet = false;
     return Expanded(
       child: Container(
-        // color: Colors.amber,
         padding: EdgeInsets.all(getadaptiveTextSize(context, 8)),
         width: MediaQuery.of(context).size.width,
         child: MaterialButton(
@@ -254,7 +249,7 @@ class _HomepageState extends State<Homepage> {
                 getadaptiveTextSize(context, 4)),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-            color: const Color.fromARGB(255, 243, 243, 243),
+            color: Theme.of(context).unselectedWidgetColor,
             elevation: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -266,7 +261,7 @@ class _HomepageState extends State<Homepage> {
                     child: Text(
                       "Set Schedule",
                       style: TextStyle(
-                          color: const Color.fromARGB(255, 33, 31, 103),
+                          color: Theme.of(context).primaryColor,
                           fontFamily: 'Poppins',
                           fontSize: getadaptiveTextSize(context, 24),
                           fontWeight: FontWeight.bold),
@@ -276,7 +271,10 @@ class _HomepageState extends State<Homepage> {
                 ),
                 Padding(
                     padding: const EdgeInsets.only(right: 16),
-                    child: Icon(Icons.keyboard_arrow_right_rounded)),
+                    child: Icon(
+                      Icons.keyboard_arrow_right_rounded,
+                      color: Theme.of(context).primaryColor,
+                    )),
               ],
             )),
       ),
@@ -289,17 +287,30 @@ class _HomepageState extends State<Homepage> {
         padding: EdgeInsets.all(getadaptiveTextSize(context, 8)),
         width: MediaQuery.of(context).size.width,
         child: MaterialButton(
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => EnableUVLightDialog());
-            },
+            onPressed: UserInfo.isUVLightActivated
+                ? () async {
+                    print("Deactivating UV Light!");
+                    MQTT.publish(
+                        "${UserInfo.productId}/uvlight_duration", "stop");
+                    UserInfo.isUVLightActivated = false;
+                    await UVLightHandler().removeFile();
+                    setState(() {});
+                  }
+                : () {
+                    showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => EnableUVLightDialog()).then(
+                      (_) => setState(() {}),
+                    );
+                  },
             padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
                 getadaptiveTextSize(context, 4)),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-            color: const Color.fromARGB(255, 243, 243, 243),
+            color: UserInfo.isUVLightActivated
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).unselectedWidgetColor,
             elevation: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -309,9 +320,13 @@ class _HomepageState extends State<Homepage> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      "Enable UV Light",
+                      UserInfo.isUVLightActivated
+                          ? "Deactivate UV Light"
+                          : "Activate UV Light",
                       style: TextStyle(
-                          color: const Color.fromARGB(255, 33, 31, 103),
+                          color: UserInfo.isUVLightActivated
+                              ? Theme.of(context).unselectedWidgetColor
+                              : Theme.of(context).primaryColor,
                           fontFamily: 'Poppins',
                           fontSize: getadaptiveTextSize(context, 24),
                           fontWeight: FontWeight.bold),
@@ -321,7 +336,12 @@ class _HomepageState extends State<Homepage> {
                 ),
                 Padding(
                     padding: const EdgeInsets.only(right: 16),
-                    child: Icon(Icons.keyboard_arrow_right_rounded)),
+                    child: Icon(
+                      Icons.keyboard_arrow_right_rounded,
+                      color: UserInfo.isUVLightActivated
+                          ? Theme.of(context).unselectedWidgetColor
+                          : Theme.of(context).primaryColor,
+                    )),
               ],
             )),
       ),
@@ -347,7 +367,7 @@ class _HomepageState extends State<Homepage> {
                 getadaptiveTextSize(context, 4)),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-            color: const Color.fromARGB(255, 243, 243, 243),
+            color: Theme.of(context).unselectedWidgetColor,
             elevation: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -359,7 +379,7 @@ class _HomepageState extends State<Homepage> {
                     child: Text(
                       "View Activity Log",
                       style: TextStyle(
-                          color: const Color.fromARGB(255, 33, 31, 103),
+                          color: Theme.of(context).primaryColor,
                           fontFamily: 'Poppins',
                           fontSize: getadaptiveTextSize(context, 24),
                           fontWeight: FontWeight.bold),
@@ -369,7 +389,10 @@ class _HomepageState extends State<Homepage> {
                 ),
                 Padding(
                     padding: const EdgeInsets.only(right: 16),
-                    child: Icon(Icons.keyboard_arrow_right_rounded)),
+                    child: Icon(
+                      Icons.keyboard_arrow_right_rounded,
+                      color: Theme.of(context).primaryColor,
+                    )),
               ],
             )),
       ),
@@ -382,7 +405,6 @@ class _HomepageState extends State<Homepage> {
       Quotes.isAlreadyAnimated = true;
       return [
         Container(
-          // color: Colors.green,
           alignment: Alignment.center,
           margin: EdgeInsets.only(
               left: getadaptiveTextSize(context, 16),
@@ -393,21 +415,20 @@ class _HomepageState extends State<Homepage> {
                 Quotes.message,
                 textAlign: TextAlign.center,
                 textStyle: TextStyle(
+                    // color: Theme.of(context).primaryColorLight,
                     fontWeight: FontWeight.w300,
                     fontFamily: "Poppins",
                     fontSize: getadaptiveTextSize(context, 12)),
               )
             ],
-            // isRepeatingAnimation: false,
             repeatForever: false,
             totalRepeatCount: 1,
-            // displayFullTextOnTap: true,
+            displayFullTextOnTap: true,
           ),
         ),
 
         // AUTHOR
         Container(
-          // color: Colors.orange,
           padding: EdgeInsets.all(8),
           alignment: Alignment.topCenter,
           child: AnimatedTextKit(
@@ -416,23 +437,22 @@ class _HomepageState extends State<Homepage> {
                 "— ${Quotes.author}",
                 textAlign: TextAlign.center,
                 textStyle: TextStyle(
+                    // color: Theme.of(context).primaryColorLight,
                     fontFamily: "Poppins",
                     fontWeight: FontWeight.w300,
                     fontStyle: FontStyle.italic,
                     fontSize: getadaptiveTextSize(context, 14)),
               )
             ],
-            // isRepeatingAnimation: false,
             repeatForever: false,
             totalRepeatCount: 1,
-            // displayFullTextOnTap: true,
+            displayFullTextOnTap: true,
           ),
         ),
       ];
     } else if (Quotes.hasQuote == true && Quotes.isAlreadyAnimated == true) {
       return [
         Container(
-            // color: Colors.green,
             alignment: Alignment.center,
             margin: EdgeInsets.only(
                 left: getadaptiveTextSize(context, 16),
@@ -446,7 +466,6 @@ class _HomepageState extends State<Homepage> {
                   fontSize: getadaptiveTextSize(context, 12)),
             )),
         Container(
-            // color: Colors.orange,
             padding: EdgeInsets.all(8),
             alignment: Alignment.topCenter,
             child: Text(
@@ -486,15 +505,13 @@ Container modeIdentifierWidget(BuildContext context, bool isAutomaticMode) {
 Container headlineAutomaticWidget(BuildContext context) {
   return Container(
       margin: const EdgeInsets.only(right: 16),
-      // margin: const EdgeInsets.only(top: 16, bottom: 4, right: 16),
       width: MediaQuery.of(context).size.width,
-      // color: Colors.orange,
       alignment: Alignment.topRight,
       child: FittedBox(
         fit: BoxFit.contain,
         child: Text("Feeding Time",
             style: TextStyle(
-                color: const Color.fromARGB(255, 33, 31, 103),
+                color: Theme.of(context).primaryColor,
                 fontFamily: 'Poppins',
                 fontSize: getadaptiveTextSize(context, 50),
                 fontWeight: FontWeight.bold)),
@@ -513,7 +530,7 @@ Container subHeadlineWidget(BuildContext context, DateTime activeSchedule) {
                 // .format(scheduledTimes[scheduleRotationIndex]),
                 .format(activeSchedule),
             style: TextStyle(
-                color: const Color.fromARGB(255, 33, 31, 103),
+                color: Theme.of(context).primaryColor,
                 fontFamily: 'Poppins',
                 fontSize: getadaptiveTextSize(context, 48),
                 fontWeight: FontWeight.w300)),
@@ -522,7 +539,6 @@ Container subHeadlineWidget(BuildContext context, DateTime activeSchedule) {
 
 Container countdownWidget(DateTime activeSchedule) {
   return Container(
-      // color: Colors.red,
       margin: const EdgeInsets.only(right: 16, bottom: 24),
       alignment: Alignment.topRight,
       // width: MediaQuery.of(context).size.width,
@@ -532,7 +548,6 @@ Container countdownWidget(DateTime activeSchedule) {
 // UNDECIDED
 Container feedButtonWidget(BuildContext context) {
   return Container(
-    // color: Colors.amber,
     alignment: Alignment.center,
     // margin: const EdgeInsets.only(bottom: 16),
     child: ElevatedButton(
@@ -543,13 +558,13 @@ Container feedButtonWidget(BuildContext context) {
             builder: (context) => FeedMeDialog());
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color.fromARGB(255, 243, 243, 243),
+        backgroundColor: Theme.of(context).unselectedWidgetColor,
         padding: const EdgeInsets.only(left: 32, right: 32),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       child: Text("FEED NOW",
           style: TextStyle(
-              color: const Color.fromARGB(255, 33, 31, 103),
+              color: Theme.of(context).primaryColor,
               fontFamily: 'Poppins',
               fontSize: getadaptiveTextSize(context, 16),
               fontWeight: FontWeight.bold)),
@@ -583,6 +598,7 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
   bool starting = true;
   bool failed = false;
   bool done = false;
+  String? status = "Waiting for response...";
   Timer? _timeoutTimer;
 
   @override
@@ -600,14 +616,17 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
 
       if (c[0].topic == "${UserInfo.productId}/feed_duration_response" &&
           message == "true") {
-        setState(() {
-          failed = false;
-          done = true;
-          // Close the dialog
-          // Wait for the dispense to finish then pop out the context saying "Success"
-          Timer(Duration(seconds: _sliderValue.toInt()), () {
-            Navigator.of(context).pop();
+        setState(() => status = "Dispensing food now");
+        // Close the dialog
+        // Wait for the dispense to finish then pop out the context saying "Success"
+        Timer(Duration(seconds: _sliderValue.toInt() - 3), () {
+          setState(() {
+            failed = false;
+            done = true;
           });
+        });
+        Timer(Duration(seconds: _sliderValue.toInt()), () {
+          Navigator.of(context).pop();
         });
       }
     });
@@ -633,52 +652,6 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
   }
 
   sendInSuccessLogToDatabase() async {
-    // String requestURL = "";
-    // String jsonBody = "";
-    // bool newUserWithNoLogs = false;
-    // First check if the user already has a collection within the database
-    /*
-    final String checkDatabaseURL =
-        "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
-    var responseDatabase = await http.get(Uri.parse(checkDatabaseURL));
-    var jsonResponseDatabase =
-        convert.jsonDecode(responseDatabase.body) as Map<String, dynamic>;
-
-    print(jsonResponseDatabase['data'].toString());
-
-    if (jsonResponseDatabase['data'].length > 0) {
-      print("User has logs in the database... just setting it up");
-      // User already has logs in the database
-      requestURL =
-          "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
-      // var response = await http.get(Uri.parse(requestURL));
-      jsonBody = convert.json.encode({
-        'type': "Feed Log",
-        'didFail': false,
-        'duration': _sliderValue.toInt(),
-        'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
-      });
-    } else {
-      newUserWithNoLogs = true;
-      print(
-          "User doesn't have logs in the database... will send a creation payload");
-      // Create a log collection for the user
-      requestURL = "${dotenv.env['CRUD_API']!}/api/logs/";
-      // var response = await http.get(Uri.parse(requestURL));
-      jsonBody = convert.json.encode({
-        'client': UserInfo.productId,
-        'items': [
-          {
-            'type': "Feed Log",
-            'didFail': false,
-            'duration': _sliderValue.toInt(),
-            'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
-          }
-        ]
-      });
-    }
-    */
-
     // User already has logs in the database
     String requestURL =
         "${dotenv.env['CRUD_API']!}/api/logs/client/${UserInfo.productId}";
@@ -696,21 +669,7 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
         body: jsonBody);
 
     if (response.statusCode == 200) {
-      // if (newUserWithNoLogs == true) {
-      //   var jsonResponse =
-      //       convert.jsonDecode(response.body) as Map<String, dynamic>;
-
-      //   History.generalHistoryDatabaseId = jsonResponse['data']['_id'];
-      //   print(History.generalHistoryDatabaseId);
-
-      //   UserInfo.preferences.setString(
-      //       'generalHistoryDatabaseId', History.generalHistoryDatabaseId);
-      //   print("Successfully added item log on database as a new user...");
-      // } else {
-      //   print("Successfully added item log on database");
-      // }
       print("Successfully added item log on database");
-      // History.didUserUpdate = true;
     } else {
       print("Failed to add item log on database");
     }
@@ -734,7 +693,6 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
 
     if (response.statusCode == 200) {
       print("Successfully added item log on database");
-      // History.didUserUpdate = true;
     } else {
       print("Failed to add item log on database");
     }
@@ -744,12 +702,20 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
   Widget build(BuildContext context) {
     if (starting == true && failed == false) {
       return AlertDialog(
-        title: Text("Dispense food"),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
+          "Dispense food",
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text("Duration (in seconds):"),
+            Text(
+              "Duration (in seconds):",
+            ),
             Slider(
+              thumbColor: Theme.of(context).secondaryHeaderColor,
+              activeColor: Theme.of(context).secondaryHeaderColor,
+              inactiveColor: Theme.of(context).unselectedWidgetColor,
               value: _sliderValue,
               min: 1.0,
               max: 10.0,
@@ -760,20 +726,27 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
                 });
               },
             ),
-            Text(_sliderValue == 1.0
-                ? "${_sliderValue.toInt()} second"
-                : "${_sliderValue.toInt()} seconds"),
+            Text(
+              _sliderValue == 1.0
+                  ? "${_sliderValue.toInt()} second"
+                  : "${_sliderValue.toInt()} seconds",
+              // style: TextStyle(color: Theme.of(context).primaryColorLight),
+            ),
           ],
         ),
         actions: <Widget>[
           TextButton(
-            child: Text("Cancel"),
+            child: Text("Cancel",
+                style: TextStyle(color: Theme.of(context).primaryColor)),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: Text("Feed"),
+            child: Text(
+              "Feed",
+              style: TextStyle(color: Theme.of(context).primaryColor),
+            ),
             onPressed: () {
               // Handle MQTT here
               MQTT.publish("${UserInfo.productId}/feed_duration",
@@ -793,29 +766,42 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
     } else if (starting == false && failed == false) {
       if (done == false) {
         return AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           content: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
+            children: [
               CircularProgressIndicator(),
-              Text("Waiting for response"),
+              Text(
+                status as String,
+                // style: TextStyle(color: Theme.of(context).primaryColorLight),
+              ),
             ],
           ),
         );
       } else if (done == true) {
         // Show success
         return AlertDialog(
-          content: Text("Successfully dispensed food"),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          content: Text(
+            "Successfully dispensed food",
+            // style: TextStyle(color: Theme.of(context).primaryColorLight)
+          ),
         );
       }
     }
 
     // FAILS
     return AlertDialog(
-      content: Text("Failed to dispense food"),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      content: Text(
+        "Failed to dispense food",
+        // style: TextStyle(color: Theme.of(context).primaryColorLight)
+      ),
       actions: [
         TextButton(
-          child: Text("Ok"),
+          child: Text("Close",
+              style: TextStyle(color: Theme.of(context).primaryColor)),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -835,10 +821,11 @@ class EnableUVLightDialog extends StatefulWidget {
 class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
   // TODO: BEAUTIFY
   late StreamSubscription subscription;
-  double _sliderValue = 1.0;
+  double _sliderValue = 15.0;
   bool starting = true;
   bool failed = false;
   bool done = false;
+  String? status = "Waiting for response...";
   Timer? _timeoutTimer;
 
   @override
@@ -849,8 +836,8 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
     // Subscribe to the needed topic
     MQTT.client.subscribe(
         "${UserInfo.productId}/uvlight_duration_response", MqttQos.exactlyOnce);
-    subscription =
-        MQTT.client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+    subscription = MQTT.client.updates!
+        .listen((List<MqttReceivedMessage<MqttMessage>> c) async {
       final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
       final String message =
           MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
@@ -858,12 +845,19 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
       if (c[0].topic == "${UserInfo.productId}/uvlight_duration_response" &&
           message == "true") {
         setState(() {
-          failed = false;
-          done = true;
-          // Close the dialog
-          Timer(Duration(seconds: 5), () {
-            Navigator.of(context).pop();
+          status = "UV Light is turned on";
+        });
+        await UVLightHandler().startTimer(_sliderValue.toInt());
+        await UVLightHandler().saveStateToFile(_sliderValue.toInt());
+        // Wait for the dispense to finish then pop out the context saying "Success"
+        Timer(Duration(seconds: 5), () {
+          setState(() {
+            failed = false;
+            done = true;
           });
+        });
+        Timer(Duration(seconds: 7), () {
+          Navigator.of(context).pop();
         });
       }
     });
@@ -884,12 +878,23 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
   Widget build(BuildContext context) {
     if (starting == true && failed == false) {
       return AlertDialog(
-        title: Text("Turn on UV Light"),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
+          "Turn on UV Light",
+          // style: TextStyle(color: Theme.of(context).primaryColorLight)
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text("Duration (in minutes):"),
+            Text(
+              "Duration (in minutes):",
+              // style: TextStyle(color: Theme.of(context).primaryColorLight)
+            ),
+            // ),
             Slider(
+              thumbColor: Theme.of(context).secondaryHeaderColor,
+              activeColor: Theme.of(context).secondaryHeaderColor,
+              inactiveColor: Theme.of(context).unselectedWidgetColor,
               value: _sliderValue,
               min: 1.0,
               max: 60,
@@ -900,36 +905,95 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
                 });
               },
             ),
-            Text(_sliderValue == 1.0
-                ? "${_sliderValue.toInt()} minute"
-                : "${_sliderValue.toInt()} minutes"),
+            Text(
+              _sliderValue == 1.0
+                  ? "${_sliderValue.toInt()} minute"
+                  : "${_sliderValue.toInt()} minutes",
+              // style: TextStyle(color: Theme.of(context).primaryColorLight
+            ),
           ],
         ),
         actions: <Widget>[
           TextButton(
-            child: Text("Cancel"),
+            child: Text("Cancel",
+                style: TextStyle(color: Theme.of(context).primaryColor)),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: Text("Enable"),
+            child: Text("Enable",
+                style: TextStyle(color: Theme.of(context).primaryColor)),
+            // ),
             onPressed: () {
-              // Handle MQTT here
-              // print(_sliderValue.toInt() * 60000);
-              int durationInMs = _sliderValue.toInt() * 60000;
-              print(durationInMs);
-              MQTT.publish("${UserInfo.productId}/uvlight_duration",
-                  durationInMs.toString());
-              setState(() {
-                starting = false;
-              });
-              _timeoutTimer =
-                  Timer(Duration(seconds: _sliderValue.toInt()), () {
-                setState(() {
-                  failed = true;
-                });
-              });
+              showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text(
+                        "Warning",
+                        style: TextStyle(color: Theme.of(context).primaryColor),
+                      ),
+                      content: RichText(
+                        textAlign: TextAlign.justify,
+                        text: TextSpan(
+                          text:
+                              "Extended exposure to UVC-Light can be harmful to your pet's skin and eyes. We recommend using this feature for",
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            // color: Colors.black,
+                            fontSize: 16.0,
+                          ),
+                          children: [
+                            TextSpan(
+                                text: " no longer than 30 minutes at a time",
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(
+                                text:
+                                    ", avoid direct exposure to the light while it is on."),
+                            TextSpan(
+                              text:
+                                  " UVC-Light can cause skin and eye damage if used improperly. ",
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                            TextSpan(
+                              text: "\n\nPlease use with caution!",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: getadaptiveTextSize(context, 20)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text("Cancel")),
+                        TextButton(
+                            onPressed: () {
+                              // Handle MQTT here
+                              int durationInMs = _sliderValue.toInt() * 60000;
+                              MQTT.publish(
+                                  "${UserInfo.productId}/uvlight_duration",
+                                  durationInMs.toString());
+
+                              Navigator.of(context).pop();
+                              setState(() {
+                                starting = false;
+                              });
+                              _timeoutTimer = Timer(Duration(seconds: 15), () {
+                                setState(() {
+                                  failed = true;
+                                });
+                              });
+                            },
+                            child: Text("Continue")),
+                      ],
+                    );
+                  });
             },
           ),
         ],
@@ -940,16 +1004,16 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
           content: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
+            children: [
               CircularProgressIndicator(),
-              Text("Waiting for response"),
+              Text(status as String),
             ],
           ),
         );
       } else if (done == true) {
         // Show success
         return AlertDialog(
-          content: Text("Successfully enabled UV light"),
+          content: Text("Successfully activated UV light"),
         );
       }
     }
@@ -959,7 +1023,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
       content: Text("Failed to enable UV light"),
       actions: [
         TextButton(
-          child: Text("Ok"),
+          child: Text("Close"),
           onPressed: () {
             Navigator.of(context).pop();
           },

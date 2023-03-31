@@ -63,7 +63,8 @@ class _MusicPageState extends State<MusicPage> {
           // Uses string manipulation to get filename
           String songName = file.path.split('/').last;
           String cleanedSongName = songName.replaceFirst(RegExp(r'.mp3'), '');
-          String fileURL = "http://$serverIp:8080/file_picker/$songName";
+          String fileURL =
+              "http://$serverIp:8080/file_picker/${songName.replaceAll(RegExp(r'\s'), '%20')}";
           String artist = await getArtistTag(file.path);
           print("The stuff is: $songName - $artist => $fileURL");
           audioFiles.add(
@@ -81,26 +82,6 @@ class _MusicPageState extends State<MusicPage> {
     String artist = tag?.artist ?? "Unknown Artist";
     print("Artist is: $artist");
     return artist;
-
-    // // // Read the file bytes
-    // String artist = "Unknown Artist";
-
-    // // Read the file bytes
-    // List<int> fileBytes = File(audioFilePath).readAsBytesSync();
-
-    // // Get the ID3 tag
-    // List<int> id3Tag = fileBytes.sublist(0, 3);
-
-    // // Check if the file has an ID3 tag
-    // if (id3Tag[0] == 73 && id3Tag[1] == 68 && id3Tag[2] == 51) {
-    //   // Get the artist tag
-    //   artist = utf8.decode(fileBytes.sublist(33, 62)).trim();
-    //   print("Artist: $artist");
-    // } else {
-    //   print("No ID3v2 tag found.");
-    // }
-
-    // return artist;
   }
 
   @override
@@ -147,10 +128,11 @@ class _MusicPageState extends State<MusicPage> {
               withData: true);
           if (result != null) {
             print("The file location is at: ${result.files.first.path}");
-            // Get the file name
+            // Get the file name (replace all spaces with '_')
             String songName = (result.files.single.path)!.split('/').last;
             String cleanedSongName = songName.replaceFirst(RegExp(r'.mp3'), '');
-            String fileURL = "http://$serverIp:8080/file_picker/$songName";
+            String fileURL =
+                "http://$serverIp:8080/file_picker/${songName.replaceAll(RegExp(r'\s'), '%20')}";
             String artist =
                 await getArtistTag(result.files.single.path as String);
             audioFiles.add(AudioItem(result.files.single.path as String,
@@ -187,16 +169,19 @@ class _MusicPageState extends State<MusicPage> {
       child: Material(
         borderRadius: BorderRadius.circular(32),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           mainAxisSize: MainAxisSize.max,
           children: [
             Row(
               children: [
-                Container(
-                    child: const Icon(
-                  Icons.music_note_rounded,
-                  size: 32,
-                )),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Container(
+                      child: const Icon(
+                    Icons.music_note_rounded,
+                    size: 32,
+                  )),
+                ),
                 Container(
                   margin: const EdgeInsets.only(right: 32, left: 8),
                   child: Column(
@@ -205,7 +190,11 @@ class _MusicPageState extends State<MusicPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: 16, bottom: 8),
                         child: Text(
-                          audio.cleanedSongName,
+                          audio.cleanedSongName.length > 16
+                              ? "${audio.cleanedSongName.substring(0, 18)}..."
+                              : audio.cleanedSongName,
+                          // maxLines: 2,
+                          // overflow: TextOverflow.fade,
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: getadaptiveTextSize(context, 18)),
@@ -213,27 +202,40 @@ class _MusicPageState extends State<MusicPage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(audio.artist),
-                      )
+                        child: Text(
+                            // audio.artist.substring(0, 16),
+                            audio.artist
+                            // audio.artist.length > 16
+                            //     ? "${audio.artist.substring(0, 18)}..."
+                            //     : audio.artist,
+                            // audio.artist.length > 32
+                            //     ? audio.artist.substring(0, 32)
+                            //     : audio.artist,
+                            // maxLines: 2,
+                            ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            MaterialButton(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50)),
-              color: const Color.fromARGB(255, 243, 243, 243),
-              onPressed: () async {
-                if (MQTTPublic.isConnected) {
-                  print("Song is found on this url: ${audio.fileURL}");
-                  MQTTPublic.publish(
-                      "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
-                      audio.fileURL);
-                }
-                Navigator.of(context).pop(true);
-              },
-              child: const Text("Play"),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: MaterialButton(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50)),
+                color: const Color.fromARGB(255, 243, 243, 243),
+                onPressed: () async {
+                  if (MQTTPublic.isConnected) {
+                    print("Song is found on this url: ${audio.fileURL}");
+                    MQTTPublic.publish(
+                        "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
+                        audio.fileURL);
+                  }
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text("Play"),
+              ),
             ),
           ],
         ),
