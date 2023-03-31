@@ -20,6 +20,7 @@ ThemeData dark = ThemeData(
     bodyText2: TextStyle(color: Color.fromARGB(255, 243, 243, 243)),
     headline6: TextStyle(color: Color.fromARGB(255, 243, 243, 243)),
   ),
+  disabledColor: const Color.fromARGB(200, 140, 140, 140),
   inputDecorationTheme: const InputDecorationTheme(
     // Other input decoration theme properties...
     enabledBorder: OutlineInputBorder(
@@ -37,20 +38,18 @@ ThemeData dark = ThemeData(
     ),
   ),
 );
-// class ThemeManager extends ChangeNotifier {
-//   // ThemeData _currentTheme = ThemeData.light(); // default to light theme
 
-//   // ThemeData get currentTheme => _currentTheme;
+// TODO: Theme customization widget
+class ThemePreferences extends StatefulWidget {
+  const ThemePreferences({super.key});
 
-//   ThemeData light = ThemeData(primarySwatch: Colors.amber
-//       // primaryColor: Colors.amber,
-//       // scaffoldBackgroundColor: Colors.amber,
-//       // brightness: Brightness.light,
-//       // backgroundColor: Color.fromARGB(255, 184, 32, 32),
-//       );
+  @override
+  State<ThemePreferences> createState() => _ThemePreferencesState();
+}
 
-//   // void setTheme(bool isDarkMode) {
-//   //   _currentTheme = isDarkMode ? ThemeData.dark() : ThemeData.light();
-//   //   notifyListeners();
-//   // }
-// }
+class _ThemePreferencesState extends State<ThemePreferences> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog();
+  }
+}

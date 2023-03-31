@@ -238,8 +238,25 @@ class _HomepageState extends State<Homepage> {
               // Create a new window for managing schedules
               Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const SchedulePage())).then((_) {
+                  PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 250),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const SchedulePage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return ScaleTransition(
+                          scale: Tween<double>(
+                            begin: 0.0,
+                            end: 1.0,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            ),
+                          ),
+                          child: child,
+                        );
+                      })).then((_) {
                 // // Simply update page after exiting the page
                 setState(() {});
                 Homepage.wentToSchedule = true;
@@ -297,12 +314,31 @@ class _HomepageState extends State<Homepage> {
                     setState(() {});
                   }
                 : () {
-                    showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => EnableUVLightDialog()).then(
-                      (_) => setState(() {}),
-                    );
+                    // showDialog(
+                    //     context: context,
+                    //     barrierDismissible: false,
+                    //     builder: (context) => EnableUVLightDialog()).then(
+                    //   (_) => setState(() {}),
+                    // );
+
+                        showGeneralDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          pageBuilder: (context, a1, a2) {
+                            return Container();
+                          },
+                          transitionBuilder: (ctx, a1, a2, child) {
+                            var curve = Curves.easeInOut.transform(a1.value);
+                            return Transform.scale(
+                              scale: curve,
+                              child: const EnableUVLightDialog(),
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 500),
+                        ).then((_) => setState(() {}));
+
+
+
                   },
             padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
                 getadaptiveTextSize(context, 4)),
@@ -357,11 +393,34 @@ class _HomepageState extends State<Homepage> {
             onPressed: () {
               Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ActivityLogPage())).then((_) {
-                // // Simply update page after exiting the page
-                setState(() {});
-              });
+                  PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 250),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const ActivityLogPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return ScaleTransition(
+                          scale: Tween<double>(
+                            begin: 0.0,
+                            end: 1.0,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            ),
+                          ),
+                          child: child,
+                        );
+                      }));
+
+
+              // Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: (context) => const ActivityLogPage())).then((_) {
+              //   // // Simply update page after exiting the page
+              //   setState(() {});
+              // });
             },
             padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
                 getadaptiveTextSize(context, 4)),
@@ -552,10 +611,25 @@ Container feedButtonWidget(BuildContext context) {
     // margin: const EdgeInsets.only(bottom: 16),
     child: ElevatedButton(
       onPressed: () {
-        showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => FeedMeDialog());
+        // showDialog(
+        //     context: context,
+        //     barrierDismissible: false,
+        //     builder: (context) => FeedMeDialog());
+        showGeneralDialog(
+          context: context,
+          barrierDismissible: false,
+          pageBuilder: (context, a1, a2) {
+            return Container();
+          },
+          transitionBuilder: (ctx, a1, a2, child) {
+            var curve = Curves.easeInOut.transform(a1.value);
+            return Transform.scale(
+              scale: curve,
+              child: const FeedMeDialog(),
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 500),
+        );
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Theme.of(context).unselectedWidgetColor,
@@ -927,13 +1001,15 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
             // ),
             onPressed: () {
               showDialog(
+
                   barrierDismissible: false,
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                       title: Text(
                         "Warning",
-                        style: TextStyle(color: Theme.of(context).primaryColor),
+                        // style: TextStyle(color: Theme.of(context).primaryColor),
                       ),
                       content: RichText(
                         textAlign: TextAlign.justify,
@@ -941,7 +1017,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
                           text:
                               "Extended exposure to UVC-Light can be harmful to your pet's skin and eyes. We recommend using this feature for",
                           style: TextStyle(
-                            color: Theme.of(context).primaryColor,
+                            // color: Theme.of(context).primaryColor,
                             // color: Colors.black,
                             fontSize: 16.0,
                           ),
@@ -971,7 +1047,11 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: Text("Cancel")),
+                            child: Text("Cancel",
+                            
+                          style: TextStyle(color: Theme.of(context).primaryColor)),
+                            
+                            ),
                         TextButton(
                             onPressed: () {
                               // Handle MQTT here
@@ -990,7 +1070,11 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
                                 });
                               });
                             },
-                            child: Text("Continue")),
+                            child: Text("Continue",
+                            
+                          style: TextStyle(color: Theme.of(context).primaryColor)),
+                            
+                            ),
                       ],
                     );
                   });

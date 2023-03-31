@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'preferences.dart';
 import 'service.dart';
+import 'theme.dart';
 /* import 'package:timezone/timezone.dart' as tz; */
 /* import 'package:timezone/data/latest.dart' as tz; */
 
@@ -20,9 +21,6 @@ class Settings extends StatefulWidget {
 class _SettingsState extends State<Settings> {
   String _sharedPrefsData = "";
   bool serviceStatus = UserInfo.isNotificationsEnabled ?? false;
-  // bool serviceStatus = UserInfo.isNotificationsEnabled ?? false;
-  // UserInfo.preferences.getBool('isNotificationsEnabled') ?? false;
-  // bool serviceStatus = UserInfo.isNotificationsEnabled;
   Future<void> _getSharedPrefsData() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys();
@@ -77,6 +75,15 @@ class _SettingsState extends State<Settings> {
                   child: Container(
                     margin: const EdgeInsets.only(right: 16),
                     child: Switch(
+                        // activeColor: Theme.of(context).primaryColor,
+
+                        // thumbColor: Theme.of(context).secondaryHeaderColor,
+                        // activeColor: Theme.of(context).secondaryHeaderColor,
+                        // activeTrackColor: Theme.of(context).primaryColor,
+                        // activeColor: Theme.of(context).secondaryHeaderColor,
+                        // inactiveThumbColor: Theme.of(context).primaryColor,
+                        inactiveTrackColor:
+                            Theme.of(context).secondaryHeaderColor,
                         value: serviceStatus,
                         onChanged: (value) async {
                           if (value) {
@@ -100,10 +107,10 @@ class _SettingsState extends State<Settings> {
           ),
           Container(
             margin: const EdgeInsets.all(16),
-            child: const Divider(
+            child: Divider(
               height: 0,
               thickness: 1,
-              color: Color.fromARGB(70, 111, 111, 111),
+              color: Theme.of(context).disabledColor,
               indent: 8,
               endIndent: 8,
             ),
@@ -112,7 +119,20 @@ class _SettingsState extends State<Settings> {
           // Dark mode... theming
           GestureDetector(
             onTap: (() {
-              print("tapped on theme");
+              showGeneralDialog(
+                context: context,
+                pageBuilder: (context, a1, a2) {
+                  return Container();
+                },
+                transitionBuilder: (ctx, a1, a2, child) {
+                  var curve = Curves.easeInOut.transform(a1.value);
+                  return Transform.scale(
+                    scale: curve,
+                    child: const ThemePreferences(),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 500),
+              ).then((_) => setState(() {}));
             }),
             child: Row(
               children: [
@@ -124,8 +144,9 @@ class _SettingsState extends State<Settings> {
                     flex: 0,
                     child: Container(
                         margin: const EdgeInsets.only(right: 16),
-                        child: const Icon(
+                        child: Icon(
                           Icons.keyboard_arrow_right_rounded,
+                          color: Theme.of(context).primaryColor,
                           size: 32,
                         )))
               ],
@@ -134,10 +155,10 @@ class _SettingsState extends State<Settings> {
 
           Container(
             margin: const EdgeInsets.all(16),
-            child: const Divider(
+            child: Divider(
               height: 0,
               thickness: 1,
-              color: Color.fromARGB(70, 111, 111, 111),
+              color: Theme.of(context).disabledColor,
               indent: 8,
               endIndent: 8,
             ),
@@ -158,8 +179,9 @@ class _SettingsState extends State<Settings> {
                     flex: 0,
                     child: Container(
                         margin: const EdgeInsets.only(right: 16),
-                        child: const Icon(
+                        child: Icon(
                           Icons.keyboard_arrow_right_rounded,
+                          color: Theme.of(context).primaryColor,
                           size: 32,
                         )))
               ],
@@ -168,10 +190,12 @@ class _SettingsState extends State<Settings> {
 
           Container(
             margin: const EdgeInsets.all(16),
-            child: const Divider(
+            child: Divider(
               height: 0,
               thickness: 1,
-              color: Color.fromARGB(70, 111, 111, 111),
+              // color: Color.fromARGB(70, 111, 111, 111),
+
+              color: Theme.of(context).disabledColor,
               indent: 8,
               endIndent: 8,
             ),
@@ -192,8 +216,9 @@ class _SettingsState extends State<Settings> {
                     flex: 0,
                     child: Container(
                         margin: const EdgeInsets.only(right: 16),
-                        child: const Icon(
+                        child: Icon(
                           Icons.keyboard_arrow_right_rounded,
+                          color: Theme.of(context).primaryColor,
                           size: 32,
                         )))
               ],
@@ -202,10 +227,11 @@ class _SettingsState extends State<Settings> {
 
           Container(
             margin: const EdgeInsets.all(16),
-            child: const Divider(
+            child: Divider(
               height: 0,
               thickness: 1,
-              color: Color.fromARGB(70, 111, 111, 111),
+              color: Theme.of(context).disabledColor,
+              // color: Color.fromARGB(70, 111, 111, 111),
               indent: 8,
               endIndent: 8,
             ),
@@ -222,8 +248,9 @@ Widget NotificationWidget(BuildContext context) {
     children: [
       Container(
         margin: const EdgeInsets.only(right: 16, left: 16),
-        child: const Icon(
+        child: Icon(
           Icons.notifications_none_rounded,
+          color: Theme.of(context).primaryColor,
           size: 48,
         ),
       ),
@@ -241,8 +268,9 @@ Widget ThemeCustomizationWidget(BuildContext context) {
     children: [
       Container(
         margin: const EdgeInsets.only(right: 16, left: 16),
-        child: const Icon(
+        child: Icon(
           Icons.palette_outlined,
+          color: Theme.of(context).primaryColor,
           size: 48,
         ),
       ),
@@ -260,8 +288,9 @@ Widget HelpAndSupportWidget(BuildContext context) {
     children: [
       Container(
         margin: const EdgeInsets.only(right: 16, left: 16),
-        child: const Icon(
+        child: Icon(
           Icons.contact_support_outlined,
+          color: Theme.of(context).primaryColor,
           size: 48,
         ),
       ),
@@ -279,8 +308,9 @@ Widget AboutUsWidget(BuildContext context) {
     children: [
       Container(
         margin: const EdgeInsets.only(right: 16, left: 16),
-        child: const Icon(
+        child: Icon(
           Icons.info_outline_rounded,
+          color: Theme.of(context).primaryColor,
           size: 48,
         ),
       ),

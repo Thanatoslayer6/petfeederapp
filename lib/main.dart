@@ -85,7 +85,7 @@ class _MyAppState extends State<MyApp> {
     final app = UserInfo();
     await app.initializeSharedPreferences();
     app.getStoredData();
-    // UserInfo.preferences.setString('productId', "beta12345");
+    UserInfo.preferences.setString('productId', "beta12345");
     // Start the notification service...
   }
 
@@ -100,14 +100,14 @@ class _MyAppState extends State<MyApp> {
         builder: ((context, snapshot) {
           final result = snapshot.data;
           // TODO: Set this condition to false for demoing in order to bypass start screen for new users
-          // if (UserInfo.isUserNew == false) {
-          if (UserInfo.isUserNew == true) {
+          if (UserInfo.isUserNew == false) {
+          // if (UserInfo.isUserNew == true) {
             return StartScreen(
                 result: result, updateUserStatus: updateUserStatus);
           } else {
             // START (remove this after testing)
-            // UserInfo.productId = "beta12345";
-            // UserInfo.devicePassword = "beta12345";
+            UserInfo.productId = "beta12345";
+            UserInfo.devicePassword = "beta12345";
             // END
             if (result == ConnectivityResult.none || result == null) {
               return const DefaultTabController(

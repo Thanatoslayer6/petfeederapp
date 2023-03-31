@@ -131,14 +131,17 @@ class _CameraState extends State<Camera> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.blueGrey.shade300,
+        backgroundColor: Theme.of(context).disabledColor,
+        // backg
         body: StreamBuilder(
           stream: MQTT.client.updates,
           builder: (context, snapshot) {
             if (snapshot.data == null) {
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  // valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).primaryColor),
                 ),
               );
             } else {
@@ -171,8 +174,11 @@ class _CameraState extends State<Camera> {
             FloatingActionButton.extended(
                 heroTag: "musicBtn",
                 backgroundColor: isMusicPlaying
-                    ? const Color.fromARGB(200, 33, 31, 103)
-                    : Colors.blueGrey.shade400,
+                    // ? const Color.fromARGB(200, 33, 31, 103)
+                    // : Colors.blueGrey.shade400,
+
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).unselectedWidgetColor,
                 onPressed: recorder.isRecording == true
                     ? null
                     : () {
@@ -200,21 +206,35 @@ class _CameraState extends State<Camera> {
                           });
                         }
                       },
-                label:
-                    isMusicPlaying ? const Text("Stop") : const Text("Music"),
+                label: isMusicPlaying
+                    ? Text(
+                        "Stop",
+                        style: TextStyle(
+                            color: Theme.of(context).unselectedWidgetColor),
+                      )
+                    : Text(
+                        "Music",
+                        style: TextStyle(color: Theme.of(context).primaryColor),
+                      ),
                 icon: Icon(
                   isMusicPlaying
                       ? Icons.music_off_rounded
                       : Icons.music_note_rounded,
                   size: 32,
+                  color: isMusicPlaying
+                      ? Theme.of(context).unselectedWidgetColor
+                      : Theme.of(context).primaryColor,
                 )),
             Expanded(child: Container()),
             // SPEAK BUTTON
             FloatingActionButton.extended(
                 heroTag: "speakBtn",
                 backgroundColor: recorder.isRecording
-                    ? const Color.fromARGB(200, 33, 31, 103)
-                    : Colors.blueGrey.shade400,
+                    // ? const Color.fromARGB(200, 33, 31, 103)
+                    // : Colors.blueGrey.shade400,
+
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).unselectedWidgetColor,
                 onPressed: isMusicPlaying
                     ? null
                     : () async {
@@ -225,10 +245,22 @@ class _CameraState extends State<Camera> {
                         }
                         setState(() {});
                       },
-                label: recorder.isRecording ? Text("Stop") : Text("Speak"),
+                label: recorder.isRecording
+                    ? Text(
+                        "Stop",
+                        style: TextStyle(
+                            color: Theme.of(context).unselectedWidgetColor),
+                      )
+                    : Text(
+                        "Speak",
+                        style: TextStyle(color: Theme.of(context).primaryColor),
+                      ),
                 icon: Icon(
                   recorder.isRecording ? Icons.stop : Icons.mic,
                   size: 32,
+                  color: recorder.isRecording
+                      ? Theme.of(context).unselectedWidgetColor
+                      : Theme.of(context).primaryColor,
                 )),
           ]),
         ));
