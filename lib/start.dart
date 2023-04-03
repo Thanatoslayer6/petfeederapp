@@ -188,7 +188,7 @@ class _StartScreenState extends State<StartScreen> {
                             devicePasswordInputController.text;
                         UserInfo.wifiPassword =
                             wifiPasswordInputController.text;
-                        
+
                         showGeneralDialog(
                           context: context,
                           barrierDismissible: false,
@@ -203,9 +203,7 @@ class _StartScreenState extends State<StartScreen> {
                             );
                           },
                           transitionDuration: const Duration(milliseconds: 500),
-                        )
-                        
-                        .then((value) {
+                        ).then((value) {
                           setState(() {});
                           if (value == -2) {
                             // MQTT CONNECTION FAIL

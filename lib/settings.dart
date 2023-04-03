@@ -119,20 +119,20 @@ class _SettingsState extends State<Settings> {
           // Dark mode... theming
           GestureDetector(
             onTap: (() {
-              showGeneralDialog(
-                context: context,
-                pageBuilder: (context, a1, a2) {
-                  return Container();
-                },
-                transitionBuilder: (ctx, a1, a2, child) {
-                  var curve = Curves.easeInOut.transform(a1.value);
-                  return Transform.scale(
-                    scale: curve,
-                    child: const ThemePreferences(),
-                  );
-                },
-                transitionDuration: const Duration(milliseconds: 500),
-              ).then((_) => setState(() {}));
+              // showGeneralDialog(
+              //   context: context,
+              //   pageBuilder: (context, a1, a2) {
+              //     return Container();
+              //   },
+              //   transitionBuilder: (ctx, a1, a2, child) {
+              //     var curve = Curves.easeInOut.transform(a1.value);
+              //     return Transform.scale(
+              //       scale: curve,
+              //       child: const ThemePreferences(),
+              //     );
+              //   },
+              //   transitionDuration: const Duration(milliseconds: 500),
+              // ).then((_) => setState(() {}));
             }),
             child: Row(
               children: [

@@ -136,14 +136,16 @@ class _SchedulePageState extends State<SchedulePage> {
         title: Text(
           "Schedule",
           style: TextStyle(
-              color: const Color.fromARGB(255, 33, 31, 103),
+              color: Theme.of(context).primaryColor,
               fontFamily: 'Poppins',
               fontSize: getadaptiveTextSize(context, 24),
               fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color.fromARGB(255, 33, 31, 103)),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Theme.of(context).secondaryHeaderColor,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: actionButtonLogic(),
@@ -175,8 +177,16 @@ class _SchedulePageState extends State<SchedulePage> {
       // Only limit the schedules to 10
       floatingActionButton: Schedule.listOfTimes.length != 10
           ? FloatingActionButton.extended(
-              icon: const Icon(Icons.alarm_add_rounded),
-              label: const Text("Add Schedule"),
+              backgroundColor: Theme.of(context).primaryColor,
+              icon: Icon(
+                Icons.alarm_add_rounded,
+                color: Theme.of(context).scaffoldBackgroundColor,
+              ),
+              label: Text(
+                "Add Schedule",
+                style:
+                    TextStyle(color: Theme.of(context).scaffoldBackgroundColor),
+              ),
               onPressed: () {
                 // Deselect all selected items if existing
                 setState(() {
@@ -373,8 +383,8 @@ class _SchedulePageState extends State<SchedulePage> {
       child: Material(
         borderRadius: BorderRadius.circular(32),
         color: controller.isSelected(index) == true
-            ? const Color.fromARGB(255, 101, 145, 211)
-            : const Color.fromARGB(255, 243, 243, 243),
+            ? Theme.of(context).selectedRowColor
+            : Theme.of(context).secondaryHeaderColor,
         child: InkWell(
           borderRadius: BorderRadius.circular(32),
           onTap: () {},
@@ -424,6 +434,8 @@ class _SchedulePageState extends State<SchedulePage> {
                                                     Schedule.listOfTimes[index]
                                                         .minute)),
                                         style: TextStyle(
+                                            color: Theme.of(context)
+                                                .unselectedWidgetColor,
                                             fontFamily: "Poppins",
                                             fontSize: getadaptiveTextSize(
                                                 context, 48),
@@ -442,6 +454,8 @@ class _SchedulePageState extends State<SchedulePage> {
                                                   Schedule.listOfTimes[index]
                                                       .minute)),
                                           style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .scaffoldBackgroundColor,
                                               fontFamily: "Poppins",
                                               fontSize: getadaptiveTextSize(
                                                   context, 24),
@@ -457,6 +471,8 @@ class _SchedulePageState extends State<SchedulePage> {
                                     showWeekDays(Schedule
                                         .listOfTimes[index].weekDaysIndex),
                                     style: TextStyle(
+                                        color: Theme.of(context)
+                                            .scaffoldBackgroundColor,
                                         fontFamily: "Poppins",
                                         fontSize:
                                             getadaptiveTextSize(context, 16),
@@ -469,8 +485,14 @@ class _SchedulePageState extends State<SchedulePage> {
                           Column(
                             children: [
                               Switch(
+                                  // activeColor:
+                                  //     Theme.of(context).selectedRowColor,
+                                  activeTrackColor:
+                                      Theme.of(context).unselectedWidgetColor,
                                   activeColor:
-                                      const Color.fromARGB(255, 33, 31, 103),
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                  // inactiveTrackColor:
+                                  //     Theme.of(context).secondaryHeaderColor,
                                   value: Schedule.listOfTimes[index].isActive,
                                   onChanged: (value) {
                                     setState(() {
@@ -494,10 +516,16 @@ class _SchedulePageState extends State<SchedulePage> {
                                   icon: Schedule.listOfTimes[index]
                                               .isEditingNow ==
                                           true
-                                      ? const Icon(
-                                          Icons.keyboard_arrow_up_rounded)
-                                      : const Icon(
-                                          Icons.keyboard_arrow_down_rounded))
+                                      ? Icon(
+                                          Icons.keyboard_arrow_up_rounded,
+                                          color: Theme.of(context)
+                                              .unselectedWidgetColor,
+                                        )
+                                      : Icon(
+                                          Icons.keyboard_arrow_down_rounded,
+                                          color: Theme.of(context)
+                                              .unselectedWidgetColor,
+                                        ))
                             ],
                           ),
                         ]
@@ -553,7 +581,10 @@ class _SchedulePageState extends State<SchedulePage> {
                   'Fri',
                   'Sat',
                 ],
-                // selectedShape: ,
+                // selectedFillColor: Theme.of(context).primaryColor,
+                // selectedColor: Theme.of(context).unselectedWidgetColor,
+                // disabledColor: Theme.of(context).unselectedWidgetColor,
+                // disabledFillColor: Theme.of(context).secondaryHeaderColor
               ),
             ),
             Column(
@@ -567,13 +598,16 @@ class _SchedulePageState extends State<SchedulePage> {
                     style: TextStyle(
                         fontFamily: "Poppins",
                         fontWeight: FontWeight.w300,
-                        fontSize: getadaptiveTextSize(context, 14)),
+                        fontSize: getadaptiveTextSize(context, 14),
+                        color: Theme.of(context).scaffoldBackgroundColor),
                   ),
                 ),
                 Container(
-                  // color: Colors.amber,
                   margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                   child: Slider(
+                      thumbColor: Theme.of(context).unselectedWidgetColor,
+                      activeColor: Theme.of(context).unselectedWidgetColor,
+                      inactiveColor: const Color.fromARGB(70, 111, 111, 111),
                       min: 1.0,
                       max: 10.0,
                       divisions: 9,

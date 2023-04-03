@@ -91,14 +91,14 @@ class _MusicPageState extends State<MusicPage> {
         title: Text(
           "Play Music",
           style: TextStyle(
-              color: const Color.fromARGB(255, 33, 31, 103),
+              color: Theme.of(context).primaryColor,
               fontFamily: 'Poppins',
               fontSize: getadaptiveTextSize(context, 24),
               fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color.fromARGB(255, 33, 31, 103)),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: Theme.of(context).primaryColor),
           onPressed: () => Navigator.of(context).pop(false),
         ),
         centerTitle: true,
@@ -120,7 +120,9 @@ class _MusicPageState extends State<MusicPage> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color.fromARGB(200, 33, 31, 103),
+        // backgroundColor: const Color.fromARGB(200, 33, 31, 103),
+
+        backgroundColor: Theme.of(context).primaryColor,
         onPressed: () async {
           FilePickerResult? result = await FilePicker.platform.pickFiles(
               allowedExtensions: ['mp3'],
@@ -143,9 +145,13 @@ class _MusicPageState extends State<MusicPage> {
           }
           setState(() {});
         },
-        label: const Text("Add Music/Audio"),
-        icon: const Icon(
+        label: Text(
+          "Add Music/Audio",
+          style: TextStyle(color: Theme.of(context).scaffoldBackgroundColor),
+        ),
+        icon: Icon(
           Icons.my_library_music_rounded,
+          color: Theme.of(context).scaffoldBackgroundColor,
           size: 32,
         ),
       ),
@@ -167,6 +173,7 @@ class _MusicPageState extends State<MusicPage> {
       ),
       margin: const EdgeInsets.all(8),
       child: Material(
+        color: Theme.of(context).primaryColor,
         borderRadius: BorderRadius.circular(32),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -177,8 +184,9 @@ class _MusicPageState extends State<MusicPage> {
                 Padding(
                   padding: const EdgeInsets.only(left: 16),
                   child: Container(
-                      child: const Icon(
+                      child: Icon(
                     Icons.music_note_rounded,
+                    color: Theme.of(context).unselectedWidgetColor,
                     size: 32,
                   )),
                 ),
@@ -196,6 +204,7 @@ class _MusicPageState extends State<MusicPage> {
                           // maxLines: 2,
                           // overflow: TextOverflow.fade,
                           style: TextStyle(
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               fontWeight: FontWeight.bold,
                               fontSize: getadaptiveTextSize(context, 18)),
                         ),
@@ -203,16 +212,18 @@ class _MusicPageState extends State<MusicPage> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Text(
-                            // audio.artist.substring(0, 16),
-                            audio.artist
-                            // audio.artist.length > 16
-                            //     ? "${audio.artist.substring(0, 18)}..."
-                            //     : audio.artist,
-                            // audio.artist.length > 32
-                            //     ? audio.artist.substring(0, 32)
-                            //     : audio.artist,
-                            // maxLines: 2,
-                            ),
+                          // audio.artist.substring(0, 16),
+                          audio.artist,
+                          // audio.artist.length > 16
+                          //     ? "${audio.artist.substring(0, 18)}..."
+                          //     : audio.artist,
+                          // audio.artist.length > 32
+                          //     ? audio.artist.substring(0, 32)
+                          //     : audio.artist,
+                          // maxLines: 2,
+                          style: TextStyle(
+                              color: Theme.of(context).unselectedWidgetColor),
+                        ),
                       ),
                     ],
                   ),

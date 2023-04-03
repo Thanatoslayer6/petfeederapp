@@ -85,29 +85,29 @@ class _MyAppState extends State<MyApp> {
     final app = UserInfo();
     await app.initializeSharedPreferences();
     app.getStoredData();
-    UserInfo.preferences.setString('productId', "beta12345");
+    // UserInfo.preferences.setString('productId', "beta12345");
     // Start the notification service...
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // theme: currentTheme,
-      theme: dark,
+      // theme: dark,
+      // theme: dark,
       debugShowCheckedModeBanner: false,
       home: StreamBuilder(
         stream: Connectivity().onConnectivityChanged,
         builder: ((context, snapshot) {
           final result = snapshot.data;
           // TODO: Set this condition to false for demoing in order to bypass start screen for new users
-          if (UserInfo.isUserNew == false) {
-          // if (UserInfo.isUserNew == true) {
+          // if (UserInfo.isUserNew == false) {
+          if (UserInfo.isUserNew == true) {
             return StartScreen(
                 result: result, updateUserStatus: updateUserStatus);
           } else {
             // START (remove this after testing)
-            UserInfo.productId = "beta12345";
-            UserInfo.devicePassword = "beta12345";
+            // UserInfo.productId = "beta12345";
+            // UserInfo.devicePassword = "beta12345";
             // END
             if (result == ConnectivityResult.none || result == null) {
               return const DefaultTabController(
@@ -149,15 +149,15 @@ class NoInternetConnection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.grey[300],
+      color: Theme.of(context).disabledColor,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Center(
+          Center(
             child: Icon(
               Icons.signal_wifi_statusbar_connected_no_internet_4_rounded,
               size: 128,
-              color: Color.fromARGB(255, 33, 31, 103),
+              color: Theme.of(context).primaryColor,
             ),
           ),
           Container(
@@ -165,7 +165,7 @@ class NoInternetConnection extends StatelessWidget {
             child: Text(
               "Whoops!",
               style: TextStyle(
-                  color: const Color.fromARGB(255, 33, 31, 103),
+                  color: Theme.of(context).primaryColor,
                   fontFamily: 'Poppins',
                   fontSize: getadaptiveTextSize(context, 32),
                   fontWeight: FontWeight.bold),
@@ -178,7 +178,7 @@ class NoInternetConnection extends StatelessWidget {
             child: Text(
               "Slow or no internet connection.\nPlease check your internet settings",
               style: TextStyle(
-                  color: const Color.fromARGB(255, 33, 31, 103),
+                  color: Theme.of(context).primaryColor,
                   fontFamily: 'Poppins',
                   fontSize: getadaptiveTextSize(context, 18),
                   fontWeight: FontWeight.w300),

@@ -321,24 +321,21 @@ class _HomepageState extends State<Homepage> {
                     //   (_) => setState(() {}),
                     // );
 
-                        showGeneralDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          pageBuilder: (context, a1, a2) {
-                            return Container();
-                          },
-                          transitionBuilder: (ctx, a1, a2, child) {
-                            var curve = Curves.easeInOut.transform(a1.value);
-                            return Transform.scale(
-                              scale: curve,
-                              child: const EnableUVLightDialog(),
-                            );
-                          },
-                          transitionDuration: const Duration(milliseconds: 500),
-                        ).then((_) => setState(() {}));
-
-
-
+                    showGeneralDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      pageBuilder: (context, a1, a2) {
+                        return Container();
+                      },
+                      transitionBuilder: (ctx, a1, a2, child) {
+                        var curve = Curves.easeInOut.transform(a1.value);
+                        return Transform.scale(
+                          scale: curve,
+                          child: const EnableUVLightDialog(),
+                        );
+                      },
+                      transitionDuration: const Duration(milliseconds: 500),
+                    ).then((_) => setState(() {}));
                   },
             padding: EdgeInsets.fromLTRB(0, getadaptiveTextSize(context, 4), 0,
                 getadaptiveTextSize(context, 4)),
@@ -412,7 +409,6 @@ class _HomepageState extends State<Homepage> {
                           child: child,
                         );
                       }));
-
 
               // Navigator.push(
               //     context,
@@ -1001,12 +997,12 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
             // ),
             onPressed: () {
               showDialog(
-
                   barrierDismissible: false,
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                      backgroundColor:
+                          Theme.of(context).scaffoldBackgroundColor,
                       title: Text(
                         "Warning",
                         // style: TextStyle(color: Theme.of(context).primaryColor),
@@ -1044,37 +1040,35 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
                       ),
                       actions: [
                         TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Cancel",
-                            
-                          style: TextStyle(color: Theme.of(context).primaryColor)),
-                            
-                            ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text("Cancel",
+                              style: TextStyle(
+                                  color: Theme.of(context).primaryColor)),
+                        ),
                         TextButton(
-                            onPressed: () {
-                              // Handle MQTT here
-                              int durationInMs = _sliderValue.toInt() * 60000;
-                              MQTT.publish(
-                                  "${UserInfo.productId}/uvlight_duration",
-                                  durationInMs.toString());
+                          onPressed: () {
+                            // Handle MQTT here
+                            int durationInMs = _sliderValue.toInt() * 60000;
+                            MQTT.publish(
+                                "${UserInfo.productId}/uvlight_duration",
+                                durationInMs.toString());
 
-                              Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            setState(() {
+                              starting = false;
+                            });
+                            _timeoutTimer = Timer(Duration(seconds: 15), () {
                               setState(() {
-                                starting = false;
+                                failed = true;
                               });
-                              _timeoutTimer = Timer(Duration(seconds: 15), () {
-                                setState(() {
-                                  failed = true;
-                                });
-                              });
-                            },
-                            child: Text("Continue",
-                            
-                          style: TextStyle(color: Theme.of(context).primaryColor)),
-                            
-                            ),
+                            });
+                          },
+                          child: Text("Continue",
+                              style: TextStyle(
+                                  color: Theme.of(context).primaryColor)),
+                        ),
                       ],
                     );
                   });

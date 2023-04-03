@@ -27,8 +27,8 @@ Built from *Flutter* and *MQTT*
 
 * [ ] Dark/Light theme
 * [X] Manual Feeding (On button click)
-* [ ] Automated Feeding (Based on schedule)
-* [ ] UV-Light (Enable/Disable)
+* [X] Automated Feeding (Based on schedule)
+* [X] UV-Light (Enable/Disable)
 * [X] Camera Stream
-* [ ] Speaker
-* [ ] History Log (Feeding logs)
+* [X] Audio (Playing music, speaking)
+* [X] History Log (Feeding logs, UV-C Light logs)

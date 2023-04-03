@@ -69,14 +69,17 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
         title: Text(
           "Activity Log",
           style: TextStyle(
-              color: const Color.fromARGB(255, 33, 31, 103),
+              // color: const Color.fromARGB(255, 33, 31, 103),
+              color: Theme.of(context).primaryColor,
               fontFamily: 'Poppins',
               fontSize: getadaptiveTextSize(context, 24),
               fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color.fromARGB(255, 33, 31, 103)),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Theme.of(context).primaryColor,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         centerTitle: true,
@@ -105,6 +108,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
       ),
       margin: const EdgeInsets.all(8),
       child: Material(
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(32),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -114,12 +118,14 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
               children: [
                 Container(
                   child: History.listOfLogs[index].didFail == true
-                      ? const Icon(
+                      ? Icon(
                           Icons.error_rounded,
+                          color: Theme.of(context).primaryColor,
                           size: 32,
                         )
-                      : const Icon(
+                      : Icon(
                           Icons.check_circle_rounded,
+                          color: Theme.of(context).primaryColor,
                           size: 32,
                         ),
                 ),
@@ -134,6 +140,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
                         child: Text(
                           History.listOfLogs[index].type,
                           style: TextStyle(
+                              color: Theme.of(context).primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: getadaptiveTextSize(context, 18)),
                         ),
@@ -144,7 +151,8 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
                         child: History.listOfLogs[index].type ==
                                 "Feed Log" // Change this to "UV" or "Feed"
                             ? Text(
-                                "${History.listOfLogs[index].duration} seconds")
+                                "${History.listOfLogs[index].duration} seconds",
+                              )
                             : Text(
                                 "${History.listOfLogs[index].duration} minutes"),
                       )
@@ -172,8 +180,10 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
                 ),
                 Text(
                   History.listOfLogs[index].dateFinished,
-                  style: const TextStyle(
-                      fontStyle: FontStyle.italic, fontWeight: FontWeight.w300),
+                  style: TextStyle(
+                      // color: Theme.of(context).secondaryHeaderColor,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w300),
                 )
               ],
             )
