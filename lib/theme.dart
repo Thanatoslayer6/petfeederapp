@@ -1,66 +1,84 @@
 import 'package:flutter/material.dart';
 
-// // TODO: Theme customization widget
-// class ThemePreferences extends StatefulWidget {
-//   const ThemePreferences({super.key});
+// TODO: Theme customization widget
+class ThemePreferences extends StatefulWidget {
+  const ThemePreferences({super.key});
 
-//   @override
-//   State<ThemePreferences> createState() => _ThemePreferencesState();
-// }
+  @override
+  State<ThemePreferences> createState() => _ThemePreferencesState();
+}
 
-// class _ThemePreferencesState extends State<ThemePreferences> {
-//   final _selectedTheme = ThemeData();
-//   @override
-//   Widget build(BuildContext context) {
-//     return AlertDialog(
-//       title: const Text('Select a theme'),
-//       content: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         children: <Widget>[
-//           RadioListTile<String>(
-//             title: const Text('Light Theme'),
-//             value: 'Light',
-//             groupValue: _selectedTheme,
-//             onChanged: (value) {
-//               setState(() {
-//                 _selectedTheme = value!;
-//               });
-//             },
-//           ),
-//           RadioListTile<String>(
-//             title: const Text('Dark Theme'),
-//             value: 'Dark',
-//             groupValue: _selectedTheme,
-//             onChanged: (value) {
-//               setState(() {
-//                 _selectedTheme = value!;
-//               });
-//             },
-//           ),
-//         ],
-//       ),
-//       actions: <Widget>[
-//         TextButton(
-//           child: const Text('CANCEL'),
-//           onPressed: () {
-//             Navigator.of(context).pop();
-//           },
-//         ),
-//         TextButton(
-//           child: const Text('OK'),
-//           onPressed: () {
-//             // You can pass the selected theme value back to the calling screen using Navigator
-//             Navigator.of(context).pop(_selectedTheme);
-//           },
-//         ),
-//       ],
-//     );
-//   }
-//   }
-// }
+class _ThemePreferencesState extends State<ThemePreferences> {
+  ThemeManager something = ThemeManager();
+  String selectedTheme = "Light";
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select a theme'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          RadioListTile<String>(
+            title: const Text('Light'),
+            value: 'Light',
+            groupValue: selectedTheme,
+            onChanged: (value) {
+              setState(() {
+                selectedTheme = value as String;
+                // _selectedTheme.setTheme("Light");
+              });
+            },
+          ),
+          RadioListTile<String>(
+            title: const Text('Dark'),
+            value: 'Dark',
+            groupValue: selectedTheme,
+            onChanged: (value) {
+              setState(() {
+                print("Dark theme is not available yet");
+                selectedTheme = value as String;
+                // _selectedTheme = value!;
+                // _selectedTheme.setTheme("Dark");
+              });
+            },
+          ),
+          RadioListTile<String>(
+            title: const Text('Abyss'),
+            value: 'Abyss',
+            groupValue: selectedTheme,
+            onChanged: (value) {
+              setState(() {
+                selectedTheme = value as String;
+                // _selectedTheme = value!;
+                // _selectedTheme.setTheme("Dark");
+              });
+            },
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('CANCEL'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            // something.setTheme(selectedTheme);
+            // You can pass the selected theme value back to the calling screen using Navigator
+            // Navigator.of(context).pop(_selectedTheme);
+            Navigator.of(context).pop(selectedTheme);
+          },
+        ),
+      ],
+    );
+  }
+}
 
 class ThemeManager {
-  ThemeData light = ThemeData(
+  static ThemeData light = ThemeData(
     scaffoldBackgroundColor: const Color.fromARGB(255, 250, 250, 250),
     primaryColor: const Color.fromARGB(255, 33, 31, 103),
     secondaryHeaderColor: const Color.fromARGB(255, 42, 39, 150),
@@ -74,7 +92,7 @@ class ThemeManager {
       headline6: TextStyle(color: Colors.black87),
     ),
   );
-  ThemeData dark = ThemeData(
+  static ThemeData dark = ThemeData(
     primaryColor: const Color.fromARGB(255, 250, 250, 250),
     // scaffoldBackgroundColor: ,
     scaffoldBackgroundColor: const Color.fromARGB(255, 33, 31, 103),
@@ -106,24 +124,27 @@ class ThemeManager {
     ),
   );
 
-  late ThemeData _currentThemeData;
+  static ThemeData current = light;
 
-  ThemeManager() {
-    // Set the default theme to light
-    _currentThemeData = light;
-  }
-
-  ThemeData get currentTheme => _currentThemeData;
-// TODO: Continue this...
-  // void setTheme(ThemeType themeType) {
-  //   switch (themeType) {
-  //     case ThemeType.LIGHT:
-  //       _currentThemeData = _lightTheme;
-  //       break;
-  //     case ThemeType.DARK:
-  //       _currentThemeData = _darkTheme;
-  //       break;
-  //   }
-  //   notifyListeners();
+  // ThemeManager() {
+  //   // Set the default theme to light
+  //   // current = light;
   // }
+
+  // ThemeData get currentTheme => current;
+
+  static void setTheme(String themeName) {
+    switch (themeName) {
+      case "Light":
+        current = light;
+        break;
+      case "Dark":
+        current = dark;
+        break;
+      case "Abyss":
+        current = dark;  
+        print("Setting up Abyss theme...");
+        break;
+    }
+  }
 }
