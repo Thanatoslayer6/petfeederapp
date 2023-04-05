@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:petfeederapp/theme.dart';
+import 'package:provider/provider.dart';
 import 'notification.dart';
 import 'start.dart';
 import 'adaptive.dart';
@@ -50,9 +51,15 @@ Future main() async {
   if (await Permission.manageExternalStorage.request().isGranted) {
     print("External storage now granted");
   }
-  // await Permission.storage.request();
-  // await Permission.manageExternalStorage.request();
+
   runApp(const MyApp());
+
+  // runApp(
+  //   ChangeNotifierProvider(
+  //     create: (context) => ThemeProvider(),
+  //     child: const MyApp(),
+  //   )
+  // );
 }
 
 class MyApp extends StatefulWidget {
@@ -63,7 +70,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // ThemeData currentTheme = ThemeManager().currentTheme;
+  late UserInfo app;
   // This method will be used for updating user status
   void updateUserStatus(bool status) {
     UserInfo.isUserNew = status;
@@ -82,7 +89,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   sharedPrefInit() async {
-    final app = UserInfo();
+    app = UserInfo();
     await app.initializeSharedPreferences();
     app.getStoredData();
     UserInfo.preferences.setString('productId', "beta12345");
@@ -91,9 +98,9 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    /*
     return MaterialApp(
-      // theme: dark,
-      theme: ThemeManager.current,
+      theme: Provider.of<ThemeProvider>(context).currentTheme,
       debugShowCheckedModeBanner: false,
       home: StreamBuilder(
         stream: Connectivity().onConnectivityChanged,
@@ -140,6 +147,118 @@ class _MyAppState extends State<MyApp> {
       ),
     );
     // TESTING BELOW
+    */
+
+    /* 
+    return Consumer<ThemeProvider>(builder: (context, themeProvider, child) { 
+      return MaterialApp(
+        // theme: Provider.of<ThemeProvider>(context).currentTheme,
+        theme: themeProvider.currentTheme,
+        // theme: th.currentTheme,
+        // theme: dark,
+        // theme: ThemeManager.current,
+        debugShowCheckedModeBanner: false,
+        home: StreamBuilder(
+          stream: Connectivity().onConnectivityChanged,
+          builder: ((context, snapshot) {
+            final result = snapshot.data;
+            // TODO: Set this condition to false for demoing in order to bypass start screen for new users
+            if (UserInfo.isUserNew == false) {
+            // if (UserInfo.isUserNew == true) {
+              return StartScreen(
+                  result: result, updateUserStatus: updateUserStatus);
+            } else {
+              // START (remove this after testing)
+              UserInfo.productId = "beta12345";
+              UserInfo.devicePassword = "beta12345";
+              // END
+              if (result == ConnectivityResult.none || result == null) {
+                return const DefaultTabController(
+                  length: 3,
+                  child: Scaffold(
+                    appBar: TitleBar(),
+                    bottomNavigationBar: Navigation(),
+                    body: TabBarView(children: [
+                      NoInternetConnection(),
+                      NoInternetConnection(),
+                      Settings()
+                    ]),
+                  ),
+                );
+              } else {
+                // Connected to a network...
+                // First we connect to the MQTT Broker
+                return const DefaultTabController(
+                  length: 3,
+                  child: Scaffold(
+                    appBar: TitleBar(),
+                    bottomNavigationBar: Navigation(),
+                    body:
+                        TabBarView(children: [Homepage(), Camera(), Settings()]),
+                  ),
+                );
+              }
+            }
+          }),
+        ),
+      );
+    });
+    */
+
+    //============
+
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(builder: (context, provider, child) {
+        return MaterialApp(
+          theme: provider.currentTheme,
+          debugShowCheckedModeBanner: false,
+          home: StreamBuilder(
+            stream: Connectivity().onConnectivityChanged,
+            builder: ((context, snapshot) {
+              final result = snapshot.data;
+              // TODO: Set this condition to false for demoing in order to bypass start screen for new users
+              if (UserInfo.isUserNew == false) {
+                // if (UserInfo.isUserNew == true) {
+                return StartScreen(
+                    result: result, updateUserStatus: updateUserStatus);
+              } else {
+                // START (remove this after testing)
+                UserInfo.productId = "beta12345";
+                UserInfo.devicePassword = "beta12345";
+                // END
+                if (result == ConnectivityResult.none || result == null) {
+                  return const DefaultTabController(
+                    length: 3,
+                    child: Scaffold(
+                      appBar: TitleBar(),
+                      bottomNavigationBar: Navigation(),
+                      body: TabBarView(children: [
+                        NoInternetConnection(),
+                        NoInternetConnection(),
+                        Settings()
+                      ]),
+                    ),
+                  );
+                } else {
+                  // Connected to a network...
+                  // First we connect to the MQTT Broker
+                  return const DefaultTabController(
+                    length: 3,
+                    child: Scaffold(
+                      appBar: TitleBar(),
+                      bottomNavigationBar: Navigation(),
+                      body: TabBarView(
+                          children: [Homepage(), Camera(), Settings()]),
+                    ),
+                  );
+                }
+              }
+            }),
+          ),
+        );
+      }),
+    );
   }
 }
 

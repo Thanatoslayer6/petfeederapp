@@ -7,6 +7,7 @@ class UserInfo {
   static String? wifiPassword;
   static String? generalScheduleDatabaseId;
   static String? generalHistoryDatabaseId;
+  static late String selectedTheme;
   static bool? isNotificationsEnabled;
   static bool isUVLightActivated = false;
   // TODO: Theme preferences in the future
@@ -35,5 +36,7 @@ class UserInfo {
         preferences.getString('generalScheduleDatabaseId');
     generalHistoryDatabaseId =
         preferences.getString('generalHistoryDatabaseId');
+    selectedTheme = preferences.getString('selectedTheme') ?? "Light";
   }
+
 }

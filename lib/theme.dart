@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:petfeederapp/preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// TODO: Theme customization widget
 class ThemePreferences extends StatefulWidget {
   const ThemePreferences({super.key});
 
@@ -9,52 +11,35 @@ class ThemePreferences extends StatefulWidget {
 }
 
 class _ThemePreferencesState extends State<ThemePreferences> {
-  ThemeManager something = ThemeManager();
-  String selectedTheme = "Light";
+  String selectedTheme = UserInfo.selectedTheme;
+
+  Theme themeItem(String themeName) {
+    return Theme(
+      data: Theme.of(context)
+          .copyWith(unselectedWidgetColor: Theme.of(context).disabledColor),
+      child: RadioListTile(
+        title: Text(themeName),
+        value: themeName,
+        groupValue: selectedTheme,
+        onChanged: (value) {
+          setState(() {
+            selectedTheme = value as String;
+            // _selectedTheme.setTheme("Light");
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // print(selectedTheme);
     return AlertDialog(
       title: const Text('Select a theme'),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          RadioListTile<String>(
-            title: const Text('Light'),
-            value: 'Light',
-            groupValue: selectedTheme,
-            onChanged: (value) {
-              setState(() {
-                selectedTheme = value as String;
-                // _selectedTheme.setTheme("Light");
-              });
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('Dark'),
-            value: 'Dark',
-            groupValue: selectedTheme,
-            onChanged: (value) {
-              setState(() {
-                print("Dark theme is not available yet");
-                selectedTheme = value as String;
-                // _selectedTheme = value!;
-                // _selectedTheme.setTheme("Dark");
-              });
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('Abyss'),
-            value: 'Abyss',
-            groupValue: selectedTheme,
-            onChanged: (value) {
-              setState(() {
-                selectedTheme = value as String;
-                // _selectedTheme = value!;
-                // _selectedTheme.setTheme("Dark");
-              });
-            },
-          ),
-        ],
+        children: [themeItem("Light"), themeItem("Dark"), themeItem("Abyss"), themeItem("Midnight")],
       ),
       actions: <Widget>[
         TextButton(
@@ -66,9 +51,10 @@ class _ThemePreferencesState extends State<ThemePreferences> {
         TextButton(
           child: const Text('OK'),
           onPressed: () {
-            // something.setTheme(selectedTheme);
+            // Save the selected theme to shared_preferences
+            UserInfo.preferences.setString("selectedTheme", selectedTheme);
+            UserInfo.selectedTheme = selectedTheme;
             // You can pass the selected theme value back to the calling screen using Navigator
-            // Navigator.of(context).pop(_selectedTheme);
             Navigator.of(context).pop(selectedTheme);
           },
         ),
@@ -77,7 +63,7 @@ class _ThemePreferencesState extends State<ThemePreferences> {
   }
 }
 
-class ThemeManager {
+class ThemeModel {
   static ThemeData light = ThemeData(
     scaffoldBackgroundColor: const Color.fromARGB(255, 250, 250, 250),
     primaryColor: const Color.fromARGB(255, 33, 31, 103),
@@ -92,7 +78,7 @@ class ThemeManager {
       headline6: TextStyle(color: Colors.black87),
     ),
   );
-  static ThemeData dark = ThemeData(
+  static ThemeData abyss = ThemeData(
     primaryColor: const Color.fromARGB(255, 250, 250, 250),
     // scaffoldBackgroundColor: ,
     scaffoldBackgroundColor: const Color.fromARGB(255, 33, 31, 103),
@@ -123,28 +109,71 @@ class ThemeManager {
       ),
     ),
   );
+  static ThemeData midnight = ThemeData(
+    primaryColor: const Color.fromARGB(255, 8, 2, 23),
+    scaffoldBackgroundColor: const Color.fromARGB(255, 16, 10, 50),
+    accentColor: const Color.fromARGB(255, 91, 73, 193),
+    disabledColor: const Color.fromARGB(200, 140, 140, 140),
+    unselectedWidgetColor: const Color.fromARGB(200, 140, 140, 140),
+    selectedRowColor: const Color.fromARGB(255, 121, 108, 211),
+    textTheme: const TextTheme(
+      subtitle1: TextStyle(color: Colors.white),
+      subtitle2: TextStyle(color: Colors.white),
+      bodyText2: TextStyle(color: Colors.white),
+      headline6: TextStyle(color: Colors.white),
+    ),
+    inputDecorationTheme: const InputDecorationTheme(
+      hintStyle: TextStyle(color: const Color.fromARGB(255, 156, 156, 156)),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: const Color.fromARGB(255, 121, 108, 211)),
+      ),
+    ),
+  );
 
-  static ThemeData current = light;
+  static ThemeData dark = ThemeData(
+    scaffoldBackgroundColor: const Color(0xFF1A1A1A),
+    primaryColor: const Color(0xFF0D47A1),
+    accentColor: const Color(0xFF1E88E5),
+    unselectedWidgetColor: const Color(0xFFBDBDBD),
+    textTheme: TextTheme(
+      bodyText2: TextStyle(color: const Color(0xFFE0E0E0)),
+      subtitle1: TextStyle(color: const Color(0xFFE0E0E0)),
+      subtitle2: TextStyle(color: const Color(0xFFE0E0E0)),
+      headline6: TextStyle(color: const Color(0xFFE0E0E0)),
+    ),
+  );
 
-  // ThemeManager() {
-  //   // Set the default theme to light
-  //   // current = light;
-  // }
+}
 
-  // ThemeData get currentTheme => current;
+class ThemeProvider extends ChangeNotifier {
+  ThemeData theme = ThemeData();
+  late SharedPreferences _prefs;
 
-  static void setTheme(String themeName) {
+  ThemeProvider() {
+    SharedPreferences.getInstance().then((prefs) {
+      _prefs = prefs;
+      String storedTheme = _prefs.getString('selectedTheme') ?? "Light";
+      toggleTheme(storedTheme);
+    });
+  }
+
+  ThemeData get currentTheme => theme;
+
+  void toggleTheme(String themeName) {
     switch (themeName) {
       case "Light":
-        current = light;
+        theme = ThemeModel.light;
         break;
       case "Dark":
-        current = dark;
+        theme = ThemeModel.dark;
         break;
       case "Abyss":
-        current = dark;  
-        print("Setting up Abyss theme...");
+        theme = ThemeModel.abyss;
+        break;
+      case "Midnight":
+        theme = ThemeModel.midnight;
         break;
     }
+    notifyListeners();
   }
 }

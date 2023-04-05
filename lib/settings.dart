@@ -3,6 +3,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:petfeederapp/adaptive.dart';
 import 'notification.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'preferences.dart';
@@ -129,19 +130,17 @@ class _SettingsState extends State<Settings> {
                   return Transform.scale(
                     scale: curve,
                     child: const ThemePreferences(),
+                    // child: Container(),
                   );
                 },
                 transitionDuration: const Duration(milliseconds: 500),
               ).then((returnedTheme) {
-                // setState(() {
-                  // ThemeManager.setTheme(returnedTheme as String);
-                ThemeManager.current = ThemeManager.dark;
-                print("Test");
-                  // ThemeManager().setTheme(returnedTheme as String);
-                // });
-                setState(() {
-                  
-                });
+                if (returnedTheme != null) {
+                  context.read<ThemeProvider>().toggleTheme(returnedTheme as String);
+                } else {
+                  print("User cancelled selecting themes...");
+                }
+                setState(() {});
               });
             }),
             child: Row(
