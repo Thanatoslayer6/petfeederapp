@@ -69,7 +69,6 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
         title: Text(
           "Activity Log",
           style: TextStyle(
-              // color: const Color.fromARGB(255, 33, 31, 103),
               color: Theme.of(context).primaryColor,
               fontFamily: 'Poppins',
               fontSize: getadaptiveTextSize(context, 24),
@@ -88,7 +87,10 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
       ),
       body: ListView.builder(
         itemCount: History.listOfLogs.length,
-        itemBuilder: ((context, index) => logItem(index)),
+        itemBuilder: (context, index) {
+          int reversedIndex = History.listOfLogs.length - 1 - index;
+          return logItem(reversedIndex);
+        },
       ),
     );
   }
@@ -146,7 +148,6 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
                         ),
                       ),
                       Padding(
-                        // TODO: second(s) or minute(s) logic
                         padding: const EdgeInsets.only(bottom: 16),
                         child: History.listOfLogs[index].type ==
                                 "Feed Log" // Change this to "UV" or "Feed"
@@ -180,10 +181,8 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
                 ),
                 Text(
                   History.listOfLogs[index].dateFinished,
-                  style: TextStyle(
-                      // color: Theme.of(context).secondaryHeaderColor,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.w300),
+                  style: const TextStyle(
+                      fontStyle: FontStyle.italic, fontWeight: FontWeight.w300),
                 )
               ],
             )

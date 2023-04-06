@@ -81,6 +81,9 @@ class ThemeModel {
       subtitle1: TextStyle(color: Colors.black87),
       subtitle2: TextStyle(color: Colors.black87),
       bodyText2: TextStyle(color: Colors.black87),
+      bodyText1: TextStyle(color: Colors.black87, fontWeight: FontWeight.w300),
+      headline1: TextStyle(color: Colors.black87),
+      headline2: TextStyle(color: Colors.black87),
       headline6: TextStyle(color: Colors.black87),
     ),
   );
@@ -93,6 +96,9 @@ class ThemeModel {
     textTheme: const TextTheme(
       subtitle1: TextStyle(color: Color.fromARGB(255, 243, 243, 243)),
       subtitle2: TextStyle(color: Color.fromARGB(255, 243, 243, 243)),
+      bodyText1: TextStyle(
+          color: Color.fromARGB(255, 243, 243, 243),
+          fontWeight: FontWeight.w300),
       bodyText2: TextStyle(color: Color.fromARGB(255, 243, 243, 243)),
       headline6: TextStyle(color: Color.fromARGB(255, 243, 243, 243)),
     ),

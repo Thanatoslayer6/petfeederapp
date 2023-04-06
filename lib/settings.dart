@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:petfeederapp/adaptive.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -46,8 +47,9 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        // mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
+          // ConnectionStatus()
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(_sharedPrefsData),
@@ -60,12 +62,6 @@ class _SettingsState extends State<Settings> {
             },
             child: const Text('Clear Data'),
           ),
-          // ElevatedButton(
-          //   onPressed: () {
-          //     NotificationAPI.show(title: "Hello World", body: "What's up?");
-          //   },
-          //   child: const Text('Notify'),
-          // ),
           // NOTIFICATIONS
           Row(
             children: [
@@ -78,13 +74,6 @@ class _SettingsState extends State<Settings> {
                   child: Container(
                     margin: const EdgeInsets.only(right: 16),
                     child: Switch(
-                        // activeColor: Theme.of(context).primaryColor,
-
-                        // thumbColor: Theme.of(context).secondaryHeaderColor,
-                        // activeColor: Theme.of(context).secondaryHeaderColor,
-                        // activeTrackColor: Theme.of(context).primaryColor,
-                        // activeColor: Theme.of(context).secondaryHeaderColor,
-                        // inactiveThumbColor: Theme.of(context).primaryColor,
                         inactiveTrackColor:
                             Theme.of(context).secondaryHeaderColor,
                         value: serviceStatus,
@@ -122,6 +111,7 @@ class _SettingsState extends State<Settings> {
           // Theming
           GestureDetector(
             onTap: (() {
+              print("Clicked on themes and accent");
               showGeneralDialog(
                 context: context,
                 pageBuilder: (context, a1, a2) {
@@ -147,22 +137,25 @@ class _SettingsState extends State<Settings> {
                 setState(() {});
               });
             }),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: ThemeCustomizationWidget(context),
-                ),
-                Expanded(
-                    flex: 0,
-                    child: Container(
-                        margin: const EdgeInsets.only(right: 16),
-                        child: Icon(
-                          Icons.keyboard_arrow_right_rounded,
-                          color: Theme.of(context).primaryColor,
-                          size: 32,
-                        )))
-              ],
+            child: Container(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: ThemeCustomizationWidget(context),
+                  ),
+                  Expanded(
+                      flex: 0,
+                      child: Container(
+                          margin: const EdgeInsets.only(right: 16),
+                          child: Icon(
+                            Icons.keyboard_arrow_right_rounded,
+                            color: Theme.of(context).primaryColor,
+                            size: 32,
+                          )))
+                ],
+              ),
             ),
           ),
 
@@ -180,28 +173,31 @@ class _SettingsState extends State<Settings> {
           // Help and support
           GestureDetector(
             onTap: (() {
-              print("tapped on support");
+              print("Clicked on help and support");
               Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const HelpAndSupportPage()));
             }),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: HelpAndSupportWidget(context),
-                ),
-                Expanded(
-                    flex: 0,
-                    child: Container(
-                        margin: const EdgeInsets.only(right: 16),
-                        child: Icon(
-                          Icons.keyboard_arrow_right_rounded,
-                          color: Theme.of(context).primaryColor,
-                          size: 32,
-                        )))
-              ],
+            child: Container(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: HelpAndSupportWidget(context),
+                  ),
+                  Expanded(
+                      flex: 0,
+                      child: Container(
+                          margin: const EdgeInsets.only(right: 16),
+                          child: Icon(
+                            Icons.keyboard_arrow_right_rounded,
+                            color: Theme.of(context).primaryColor,
+                            size: 32,
+                          )))
+                ],
+              ),
             ),
           ),
 
@@ -221,24 +217,41 @@ class _SettingsState extends State<Settings> {
           // About us
           GestureDetector(
             onTap: (() {
-              print("tapped on about us");
+              print("Clicked on About us");
+              showGeneralDialog(
+                context: context,
+                pageBuilder: (context, a1, a2) {
+                  return Container();
+                },
+                transitionBuilder: (ctx, a1, a2, child) {
+                  var curve = Curves.easeInOut.transform(a1.value);
+                  return Transform.scale(
+                    scale: curve,
+                    child: const AboutUsPage(),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 500),
+              );
             }),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: AboutUsWidget(context),
-                ),
-                Expanded(
-                    flex: 0,
-                    child: Container(
-                        margin: const EdgeInsets.only(right: 16),
-                        child: Icon(
-                          Icons.keyboard_arrow_right_rounded,
-                          color: Theme.of(context).primaryColor,
-                          size: 32,
-                        )))
-              ],
+            child: Container(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: AboutUsWidget(context),
+                  ),
+                  Expanded(
+                      flex: 0,
+                      child: Container(
+                          margin: const EdgeInsets.only(right: 16),
+                          child: Icon(
+                            Icons.keyboard_arrow_right_rounded,
+                            color: Theme.of(context).primaryColor,
+                            size: 32,
+                          )))
+                ],
+              ),
             ),
           ),
 
@@ -348,43 +361,79 @@ final List<Item> faq = [
       header: "Can I adjust the amount of food dispensed by the feeder?",
       body:
           "Unfortunately, the feeder does not have a load/weight cell module, so you cannot adjust the amount of food dispensed based on the weight of the food. However, you can adjust the amount of time the dispenser/servo motor is open to control the amount of food dispensed.\n\nTypically, the shortest duration ranging from which is 1-2 seconds will dispense about 5-8 pellets of food, while the 3-5 seconds will dispense more than 10 or so."),
-  // Item(
-  //     header: "How can I provide feedback about the app?",
-  //     body:
-  //         "We always welcome feedback from our users! If you have any suggestions for how we can improve the app, or if you encounter any issues while using it, please let us know by sending an email to clevtechcompany@gmail.com, or you can click the 'Request a feature or suggest an idea' button above. We appreciate your input and are committed to making the app as user-friendly as possible.")
   Item(
-    header: "How can I provide feedback about the app?",
-    richBody: RichText(
-      text: TextSpan(
-        text:
-            "We always welcome feedback from our users! If you have any suggestions for how we can improve the app, or if you encounter any issues while using it, please let us know by sending an email to ",
-        // style: DefaultTextStyle.of(context).style,
-        children: <TextSpan>[
-          TextSpan(
-            text: "clevtechcompany@gmail.com",
-            style: const TextStyle(
-              // color: Colors.blue,
-              decoration: TextDecoration.underline,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                launchUrl(Uri.parse('mailto:clevtechcompany@gmail.com'));
-              },
-          ),
-          const TextSpan(
+      header: "What is the recommended dog/cat food size for the feeder",
+      body:
+          "The feeder is designed to handle dry dog/cat food that is smaller than 1.5cm (0.6 inches) in diameter. It is important to use food that is within this size range to ensure that the feeder functions properly and does not become clogged or jammed.The feeder is designed to handle dry dog/cat food that is smaller than 1.5cm (0.6 inches) in diameter. It is important to use food that is within this size range to ensure that the feeder functions properly and does not become clogged or jammed."),
+  Item(
+      header: "How can I provide feedback about the app?",
+      richBody: (BuildContext context) {
+        return RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: Theme.of(context).textTheme.bodyText1,
+            // style: const TextStyle(fontWeight: FontWeight.w300),
             text:
-                ", or you can click the 'Request a feature or suggest an idea' button above. We appreciate your input and are committed to making the app as user-friendly as possible.",
+                "If you have any suggestions for the app, or if you encounter any issues while using it, please let us know by sending us an email to ",
+            children: <TextSpan>[
+              TextSpan(
+                text: "clevtechcompany@gmail.com",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).secondaryHeaderColor,
+                  decoration: TextDecoration.underline,
+                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    launchUrl(Uri.parse('mailto:clevtechcompany@gmail.com'),
+                        mode: LaunchMode.externalApplication);
+                  },
+              ),
+              const TextSpan(
+                text:
+                    ", or you can click the button above. We appreciate your input and are committed to making the app as user-friendly as possible.",
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  )
+        );
+      }),
+  Item(
+      header: "What should I do if I experience a bug in the app?",
+      richBody: (BuildContext context) {
+        return RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: Theme.of(context).textTheme.bodyText1,
+            text:
+                "If you encounter a bug while using the app, please report it to us by sending an email to our support team at ",
+            children: <TextSpan>[
+              TextSpan(
+                text: "clevtechcompany@gmail.com",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).secondaryHeaderColor,
+                  decoration: TextDecoration.underline,
+                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    launchUrl(Uri.parse('mailto:clevtechcompany@gmail.com'),
+                        mode: LaunchMode.externalApplication);
+                  },
+              ),
+              const TextSpan(
+                text:
+                    " in your email, please include a detailed description of the bug, along with any error messages that you may have seen. Alternatively, you can click the button above ",
+              ),
+            ],
+          ),
+        );
+      }),
 ];
 
 class Item {
   final String header;
   final String? body;
-  final Widget? richBody;
+  final Function? richBody;
   bool isExpanded;
 
   Item(
@@ -404,7 +453,6 @@ class HelpAndSupportPage extends StatefulWidget {
 class _HelpAndSupportPageState extends State<HelpAndSupportPage> {
   @override
   Widget build(BuildContext context) {
-    // return const Placeholder();
     return Scaffold(
         appBar: AppBar(
           title: Text(
@@ -426,13 +474,62 @@ class _HelpAndSupportPageState extends State<HelpAndSupportPage> {
         ),
         body: Column(
           children: [
+            GestureDetector(
+              onTap: () {
+                launchUrl(
+                    Uri.parse(
+                        'https://github.com/Thanatoslayer6/petfeederapp/'),
+                    mode: LaunchMode.externalApplication);
+              },
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ListTile(
+                  title: Text(
+                    "GitHub",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).secondaryHeaderColor,
+                        fontSize: getadaptiveTextSize(context, 18)),
+                  ),
+                  subtitle: Text(
+                    "View the source code",
+                    style: Theme.of(context).textTheme.bodyText1,
+                  ),
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                launchUrl(
+                    Uri.parse(
+                        'https://github.com/Thanatoslayer6/petfeederapp/issues/new'),
+                    mode: LaunchMode.externalApplication);
+              },
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ListTile(
+                  title: Text(
+                    "Report an issue/Suggest an idea",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).secondaryHeaderColor,
+                        fontSize: getadaptiveTextSize(context, 18)),
+                  ),
+                  subtitle: Text(
+                    "You will be redirected to GitHub's issue section",
+                    style: Theme.of(context).textTheme.bodyText1,
+                  ),
+                ),
+              ),
+            ),
             Padding(
-              padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
+              padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "FREQUENTLY ASKED QUESTIONS",
+                  "Frequently Asked Questions/FAQs",
                   style: TextStyle(
+                    decoration: TextDecoration.underline,
                     color: Theme.of(context).secondaryHeaderColor,
                     fontSize: getadaptiveTextSize(context, 18),
                     fontWeight: FontWeight.bold,
@@ -440,98 +537,62 @@ class _HelpAndSupportPageState extends State<HelpAndSupportPage> {
                 ),
               ),
             ),
-            SingleChildScrollView(
-              child: Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).disabledColor.withOpacity(0.2),
-                      // color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 1,
-                      // offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: ExpansionPanelList(
-                    dividerColor: Theme.of(context).disabledColor,
-                    elevation: 0,
-                    expansionCallback: (index, isExpanded) {
-                      setState(() {
-                        faq[index].isExpanded = !isExpanded;
-                      });
-                    },
-                    children: faq
-                        .map((item) => ExpansionPanel(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              isExpanded: item.isExpanded,
-                              canTapOnHeader: true,
-                              // value: item.header,
-                              headerBuilder: (context, isExpanded) => ListTile(
-                                title: Text(
-                                  item.header,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize:
-                                          getadaptiveTextSize(context, 16)),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).disabledColor.withOpacity(0.2),
+                        // color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 1,
+                        // offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ExpansionPanelList(
+                      dividerColor: Theme.of(context).disabledColor,
+                      elevation: 0,
+                      expansionCallback: (index, isExpanded) {
+                        setState(() {
+                          faq[index].isExpanded = !isExpanded;
+                        });
+                      },
+                      children: faq
+                          .map((item) => ExpansionPanel(
+                                backgroundColor:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                isExpanded: item.isExpanded,
+                                canTapOnHeader: true,
+                                // value: item.header,
+                                headerBuilder: (context, isExpanded) =>
+                                    ListTile(
+                                  title: Text(
+                                    item.header,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize:
+                                            getadaptiveTextSize(context, 16)),
+                                  ),
                                 ),
-                              ),
-                              body: Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 0, left: 16, right: 16, bottom: 16),
-                                child: item.body == null
-                                    ? item.richBody
-                                    : Text(item.body as String,
-                                        textAlign: TextAlign.justify,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize:
-                                              getadaptiveTextSize(context, 14),
-                                        )),
-                              ),
-                            ))
-                        .toList()),
+                                body: Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 0, left: 16, right: 16, bottom: 16),
+                                  child: item.body == null
+                                      ? item.richBody!(context)
+                                      : Text(item.body as String,
+                                          textAlign: TextAlign.justify,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w300,
+                                            fontSize: getadaptiveTextSize(
+                                                context, 14),
+                                          )),
+                                ),
+                              ))
+                          .toList()),
+                ),
               ),
-
-              /*
-              child: ExpansionPanelList(
-                  dividerColor: Theme.of(context).disabledColor,
-                  elevation: 4,
-                  expansionCallback: (index, isExpanded) {
-                    setState(() {
-                      faq[index].isExpanded = !isExpanded;
-                    });
-                  },
-                  children: faq
-                      .map((item) => ExpansionPanel(
-                            backgroundColor:
-                                Theme.of(context).scaffoldBackgroundColor,
-                            isExpanded: item.isExpanded,
-                            canTapOnHeader: true,
-                            // value: item.header,
-                            headerBuilder: (context, isExpanded) => ListTile(
-                              title: Text(
-                                item.header,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: getadaptiveTextSize(context, 16)),
-                              ),
-                            ),
-                            body: Padding(
-                              padding: const EdgeInsets.only(
-                                  top: 0, left: 16, right: 16, bottom: 16),
-                              child: Text(item.body,
-                                  textAlign: TextAlign.justify,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: getadaptiveTextSize(context, 14),
-                                  )),
-                            ),
-                          ))
-                      .toList()
-              ),
-              */
             ),
           ],
         ));
@@ -556,4 +617,43 @@ Widget AboutUsWidget(BuildContext context) {
       )
     ],
   );
+}
+
+class AboutUsPage extends StatefulWidget {
+  const AboutUsPage({super.key});
+
+  @override
+  State<AboutUsPage> createState() => _AboutUsPageState();
+}
+
+class _AboutUsPageState extends State<AboutUsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text(
+        'About Us',
+        textAlign: TextAlign.center,
+      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SvgPicture.asset('assets/images/logo.svg',
+              semanticsLabel: 'ClevTech Logo',
+              color: Theme.of(context).secondaryHeaderColor,
+              width: 128,
+              height: 128),
+          const Text("Version"),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('CLOSE'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  }
 }

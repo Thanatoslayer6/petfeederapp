@@ -662,7 +662,6 @@ class FeedMeDialog extends StatefulWidget {
 }
 
 class _FeedMeDialogState extends State<FeedMeDialog> {
-  // TODO: BEAUTIFY
   late StreamSubscription subscription;
   double _sliderValue = 1.0;
   bool starting = true;
@@ -788,8 +787,8 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
               inactiveColor: Theme.of(context).unselectedWidgetColor,
               value: _sliderValue,
               min: 1.0,
-              max: 10.0,
-              divisions: 9,
+              max: 5.0,
+              divisions: 4,
               onChanged: (newValue) {
                 setState(() {
                   _sliderValue = newValue;

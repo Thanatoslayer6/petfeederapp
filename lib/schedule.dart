@@ -590,11 +590,10 @@ class _SchedulePageState extends State<SchedulePage> {
             Column(
               children: [
                 Container(
-                  // color: Colors.blue,
                   margin: const EdgeInsets.only(left: 18, top: 16),
                   alignment: Alignment.bottomLeft,
                   child: Text(
-                    "Dispense food for ${Schedule.listOfTimes[index].dispenserDuration} seconds",
+                    "Dispense food for ${(Schedule.listOfTimes[index].dispenserDuration).toInt()} ${Schedule.listOfTimes[index].dispenserDuration == 1.0 ? "second" : "seconds"}",
                     style: TextStyle(
                         fontFamily: "Poppins",
                         fontWeight: FontWeight.w300,
@@ -609,8 +608,8 @@ class _SchedulePageState extends State<SchedulePage> {
                       activeColor: Theme.of(context).unselectedWidgetColor,
                       inactiveColor: const Color.fromARGB(70, 111, 111, 111),
                       min: 1.0,
-                      max: 10.0,
-                      divisions: 9,
+                      max: 5.0,
+                      divisions: 4,
                       value: Schedule.listOfTimes[index].dispenserDuration,
                       onChanged: (newValue) {
                         setState(() {
