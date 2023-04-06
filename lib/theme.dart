@@ -39,7 +39,12 @@ class _ThemePreferencesState extends State<ThemePreferences> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [themeItem("Light"), themeItem("Dark"), themeItem("Abyss"), themeItem("Midnight")],
+        children: [
+          themeItem("Light"),
+          themeItem("Dark"),
+          themeItem("Abyss"),
+          themeItem("Midnight")
+        ],
       ),
       actions: <Widget>[
         TextButton(
@@ -63,6 +68,7 @@ class _ThemePreferencesState extends State<ThemePreferences> {
   }
 }
 
+// TODO: Fix the themes and stuff
 class ThemeModel {
   static ThemeData light = ThemeData(
     scaffoldBackgroundColor: const Color.fromARGB(255, 250, 250, 250),
@@ -80,7 +86,6 @@ class ThemeModel {
   );
   static ThemeData abyss = ThemeData(
     primaryColor: const Color.fromARGB(255, 250, 250, 250),
-    // scaffoldBackgroundColor: ,
     scaffoldBackgroundColor: const Color.fromARGB(255, 33, 31, 103),
     unselectedWidgetColor: const Color.fromARGB(255, 42, 39, 150),
     secondaryHeaderColor: const Color.fromARGB(255, 243, 243, 243),
@@ -142,7 +147,6 @@ class ThemeModel {
       headline6: TextStyle(color: const Color(0xFFE0E0E0)),
     ),
   );
-
 }
 
 class ThemeProvider extends ChangeNotifier {

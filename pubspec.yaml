@@ -59,6 +59,7 @@ dependencies:
   ffmpeg_kit_flutter_audio: 5.1.0-LTS
   file_picker: ^5.2.6
   audiotagger: ^2.2.1
+  url_launcher: ^6.1.10
 
 dev_dependencies:
   flutter_test:

@@ -29,7 +29,6 @@ class BackgroundTask {
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
-  // TODO: Literally use another thread with dotenv but different name.... connect to broker then check for stuff
   DartPluginRegistrant.ensureInitialized();
   // Probably use shared preferences and dotenv to connect...
   await dotenv.load(fileName: "assets/.env");

@@ -38,5 +38,4 @@ class UserInfo {
         preferences.getString('generalHistoryDatabaseId');
     selectedTheme = preferences.getString('selectedTheme') ?? "Light";
   }
-
 }
