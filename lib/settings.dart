@@ -1,19 +1,21 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:petfeederapp/adaptive.dart';
+import 'package:petfeederapp/main.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'notification.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'dart:async';
 import 'preferences.dart';
 import 'service.dart';
 import 'theme.dart';
-/* import 'package:timezone/timezone.dart' as tz; */
-/* import 'package:timezone/data/latest.dart' as tz; */
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -24,6 +26,8 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
   String _sharedPrefsData = "";
+  String? wifiName = "";
+  String? localIP = "";
   bool serviceStatus = UserInfo.isNotificationsEnabled ?? false;
   Future<void> _getSharedPrefsData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,6 +36,14 @@ class _SettingsState extends State<Settings> {
     for (var key in keys) {
       data += "$key : ${prefs.get(key)}\n";
     }
+
+    final info = NetworkInfo();
+    var temp = await info.getWifiName();
+    wifiName = temp?.substring(1, temp.length - 1);
+
+    // var wifiName = temp?.substring(1, temp.length - 1);
+    print(wifiName);
+    localIP = await info.getWifiIP(); // Get local ip
     setState(() {
       _sharedPrefsData = data;
     });
@@ -49,19 +61,155 @@ class _SettingsState extends State<Settings> {
       body: Column(
         // mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
+          Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              height: getadaptiveTextSize(context, 128),
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                color: Theme.of(context).secondaryHeaderColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: ListTile(
+                leading: Icon(
+                  (UserInfo.isAppConnectedToWiFi == ConnectivityResult.none ||
+                          UserInfo.isAppConnectedToWiFi == null)
+                      ? Icons.wifi_off_rounded
+                      : Icons.wifi_rounded,
+                  size: getadaptiveTextSize(context, 96),
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                ),
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        text: 'SSID: ',
+                        style: TextStyle(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: getadaptiveTextSize(context, 18)),
+                        children: [
+                          TextSpan(
+                            text: (UserInfo.isAppConnectedToWiFi ==
+                                        ConnectivityResult.none ||
+                                    UserInfo.isAppConnectedToWiFi == null)
+                                ? "None"
+                                : wifiName,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w300,
+                                color: (UserInfo.isAppConnectedToWiFi ==
+                                            ConnectivityResult.none ||
+                                        UserInfo.isAppConnectedToWiFi == null)
+                                    ? Theme.of(context).disabledColor
+                                    : Theme.of(context)
+                                        .scaffoldBackgroundColor),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    RichText(
+                      text: TextSpan(
+                        text: 'Status: ',
+                        style: TextStyle(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: getadaptiveTextSize(context, 18)),
+                        children: [
+                          TextSpan(
+                            text: (UserInfo.isAppConnectedToWiFi ==
+                                        ConnectivityResult.none ||
+                                    UserInfo.isAppConnectedToWiFi == null)
+                                ? "Disconnected"
+                                : "Connected",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w300,
+                                color: (UserInfo.isAppConnectedToWiFi ==
+                                            ConnectivityResult.none ||
+                                        UserInfo.isAppConnectedToWiFi == null)
+                                    ? Colors.redAccent[200]
+                                    : Colors.greenAccent[200]),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    RichText(
+                      text: TextSpan(
+                        text: 'Local IP: ',
+                        style: TextStyle(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: getadaptiveTextSize(context, 18)),
+                        children: [
+                          TextSpan(
+                              text: (UserInfo.isAppConnectedToWiFi ==
+                                          ConnectivityResult.none ||
+                                      UserInfo.isAppConnectedToWiFi == null)
+                                  ? "0.0.0.0"
+                                  : localIP,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w300,
+                                  color: (UserInfo.isAppConnectedToWiFi ==
+                                              ConnectivityResult.none ||
+                                          UserInfo.isAppConnectedToWiFi == null)
+                                      ? Theme.of(context).disabledColor
+                                      : Theme.of(context)
+                                          .scaffoldBackgroundColor)),
+                        ],
+                      ),
+                    ),
+                    // Text(
+                    //   "Status",
+                    //   style: TextStyle(
+                    //       fontSize: getadaptiveTextSize(context, 20),
+                    //       color: Theme.of(context).scaffoldBackgroundColor),
+                    // ),
+                    // Text(
+                    //   "Local IP: 192.168.1.1",
+                    //   // UserInfo.package.version,
+                    //   style: TextStyle(
+                    //       color: Theme.of(context).scaffoldBackgroundColor),
+                    // ),
+                  ],
+                ),
+              )),
+          /*
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            height: getadaptiveTextSize(context, 128),
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            // child: Row(
+            //   children: const [
+            //     Icon(Icons.wifi_rounded, size: 256)
+            //     // ListTile(
+            //     //   title: Icon(
+            //     //     Icons.wifi_rounded,
+            //     //     size: 24,
+            //     //   ),
+            //     // )
+            //   ],
+            // ),
+          ),
+          */
           // ConnectionStatus()
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(_sharedPrefsData),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              // Perform any other actions you need after clearing shared preferences
-            },
-            child: const Text('Clear Data'),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.all(16.0),
+          //   child: Text(_sharedPrefsData),
+          // ),
+          // ElevatedButton(
+          //   onPressed: () async {
+          //     final prefs = await SharedPreferences.getInstance();
+          //     await prefs.clear();
+          //     // Perform any other actions you need after clearing shared preferences
+          //   },
+          //   child: const Text('Clear Data'),
+          // ),
           // NOTIFICATIONS
           Row(
             children: [
@@ -219,6 +367,9 @@ class _SettingsState extends State<Settings> {
             onTap: (() {
               print("Clicked on About us");
               showGeneralDialog(
+                barrierDismissible: true, // this makes the dialog dismissible
+                barrierLabel:
+                    MaterialLocalizations.of(context).modalBarrierDismissLabel,
                 context: context,
                 pageBuilder: (context, a1, a2) {
                   return Container();
@@ -474,6 +625,9 @@ class _HelpAndSupportPageState extends State<HelpAndSupportPage> {
         ),
         body: Column(
           children: [
+            const SizedBox(
+              height: 16,
+            ),
             GestureDetector(
               onTap: () {
                 launchUrl(
@@ -484,6 +638,11 @@ class _HelpAndSupportPageState extends State<HelpAndSupportPage> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: ListTile(
+                  leading: Icon(
+                    Icons.code_rounded,
+                    size: 32,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   title: Text(
                     "GitHub",
                     style: TextStyle(
@@ -508,6 +667,11 @@ class _HelpAndSupportPageState extends State<HelpAndSupportPage> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: ListTile(
+                  leading: Icon(
+                    Icons.report_rounded,
+                    size: 32,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   title: Text(
                     "Report an issue/Suggest an idea",
                     style: TextStyle(
@@ -522,8 +686,11 @@ class _HelpAndSupportPageState extends State<HelpAndSupportPage> {
                 ),
               ),
             ),
+            const SizedBox(
+              height: 16,
+            ),
             Padding(
-              padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16),
+              padding: const EdgeInsets.only(left: 16, bottom: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -627,33 +794,126 @@ class AboutUsPage extends StatefulWidget {
 }
 
 class _AboutUsPageState extends State<AboutUsPage> {
+  // String version = "Unknown";
+
+  PackageInfo package = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+    buildSignature: 'Unknown',
+    installerStore: 'Unknown',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((value) => {
+          setState(() {
+            package = value;
+            print(
+                "${package.appName} - ${package.version} - ${package.buildNumber}");
+          })
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text(
-        'About Us',
-        textAlign: TextAlign.center,
-      ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
+      title: Row(
         children: [
           SvgPicture.asset('assets/images/logo.svg',
               semanticsLabel: 'ClevTech Logo',
               color: Theme.of(context).secondaryHeaderColor,
               width: 128,
               height: 128),
-          const Text("Version"),
+          const SizedBox(
+            width: 16,
+          ),
+          Column(
+            children: [
+              Text(
+                package.appName,
+                style: TextStyle(
+                    fontSize: getadaptiveTextSize(context, 20),
+                    color: Theme.of(context).secondaryHeaderColor),
+              ),
+              Text(
+                package.version,
+                // UserInfo.package.version,
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+            ],
+          )
         ],
       ),
-      actions: <Widget>[
-        TextButton(
-          child: const Text('CLOSE'),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(
+              Icons.person,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: const Text(
+              'Follow the Author',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            onTap: () {
+              print("Tapped on authors");
+              launchUrl(Uri.parse('https://github.com/Thanatoslayer6'),
+                  mode: LaunchMode.externalApplication);
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.facebook_rounded,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: const Text(
+              'Like us on Facebook',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            onTap: () {
+              print("Tapped on facebook");
+              launchUrl(Uri.parse('https://facebook.com/ClevTechPH'),
+                  mode: LaunchMode.externalApplication);
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.star,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: const Text(
+              'Star us on GitHub',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            onTap: () {
+              launchUrl(
+                  Uri.parse('https://github.com/Thanatoslayer6/petfeederapp'),
+                  mode: LaunchMode.externalApplication);
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.copyright_outlined,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: const Text(
+              'Licenses',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            onTap: () {
+              launchUrl(
+                  Uri.parse(
+                      'https://github.com/Thanatoslayer6/petfeederapp/blob/main/LICENSE'),
+                  mode: LaunchMode.externalApplication);
+            },
+          )
+        ],
+      ),
     );
   }
 }

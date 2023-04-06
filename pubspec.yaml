@@ -60,6 +60,7 @@ dependencies:
   file_picker: ^5.2.6
   audiotagger: ^2.2.1
   url_launcher: ^6.1.10
+  package_info_plus: ^3.0.3
 
 dev_dependencies:
   flutter_test:

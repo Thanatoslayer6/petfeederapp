@@ -35,8 +35,11 @@ class MQTT {
         .startClean()
         .authenticateAs(dotenv.env['MQTT_USER'], dotenv.env['MQTT_PASS']);
     client.connectionMessage = connMess;
-
-    await client.connect();
+    try {
+      await client.connect();
+    } catch (e) {
+      print("Service cannot connect to MQTT Broker - $e");
+    }
   }
 
   static void publish(String topic, String message) {

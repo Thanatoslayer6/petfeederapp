@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserInfo {
@@ -10,6 +11,7 @@ class UserInfo {
   static late String selectedTheme;
   static bool? isNotificationsEnabled;
   static bool isUVLightActivated = false;
+  static ConnectivityResult? isAppConnectedToWiFi;
   // TODO: Theme preferences in the future
 
   static int MQTTAuthenticationStatus = -3;

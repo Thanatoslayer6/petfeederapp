@@ -42,7 +42,11 @@ void onStart(ServiceInstance service) async {
     await MQTT.connectToBroker("$productId-notification-${const Uuid().v1()}");
     // Subscribe to the topic
     print("Subscribing service to necessary topic $productId/notifications");
-    MQTT.client.subscribe("$productId/notifications", MqttQos.atMostOnce);
+    try {
+      MQTT.client.subscribe("$productId/notifications", MqttQos.atMostOnce);
+    } catch (e) {
+      print("MQTT Service cannot subscribe to notifications topic - $e");
+    }
   }
 
   if (service is AndroidServiceInstance) {

@@ -29,7 +29,6 @@ Future main() async {
 
   // Start time, and initialize notification api
   DateTimeService.init();
-  // await initService();
   NotificationAPI.init();
   // Load environment variables
   await dotenv.load(fileName: "assets/.env");
@@ -108,6 +107,7 @@ class _MyAppState extends State<MyApp> {
             stream: Connectivity().onConnectivityChanged,
             builder: ((context, snapshot) {
               final result = snapshot.data;
+              UserInfo.isAppConnectedToWiFi = snapshot.data;
               // TODO: Set this condition to false for demoing in order to bypass start screen for new users
               if (UserInfo.isUserNew == false) {
                 // if (UserInfo.isUserNew == true) {
