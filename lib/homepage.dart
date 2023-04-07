@@ -1078,6 +1078,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
     } else if (starting == false && failed == false) {
       if (done == false) {
         return AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           content: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1090,6 +1091,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
       } else if (done == true) {
         // Show success
         return AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           content: Text("Successfully activated UV light"),
         );
       }
@@ -1097,6 +1099,7 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
 
     // FAILS
     return AlertDialog(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       content: Text("Failed to enable UV light"),
       actions: [
         TextButton(

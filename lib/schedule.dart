@@ -204,6 +204,7 @@ class _SchedulePageState extends State<SchedulePage> {
     // String jsonBody = "";
     // Logic for setting schedule
     TimeOfDay? pickedTime = await showTimePicker(
+      initialEntryMode: TimePickerEntryMode.dialOnly,
       initialTime: TimeOfDay.now(),
       context: context,
     );
@@ -212,41 +213,7 @@ class _SchedulePageState extends State<SchedulePage> {
     if (pickedTime != null) {
       Schedule.didModifySchedule = true;
       // Add schedule to front-end
-      // Schedule.listOfTimes.add(ListItem(DateTime(
-      //     DateTimeService.timeNow.year,
-      //     DateTimeService.timeNow.month,
-      //     DateTimeService.timeNow.day,
-      //     pickedTime.hour,
-      //     pickedTime.minute)));
       Schedule.listOfTimes.add(ListItem(pickedTime.hour, pickedTime.minute));
-      // Add schedule to back-end (database)
-      /*
-      if (newUserWithNoSchedules == true) {
-        requestURL = "${dotenv.env['CRUD_API']!}/api/schedule/";
-        jsonBody = json.encode({
-          'client': UserInfo.productId,
-          'items': [
-            {
-              'hour': pickedTime.hour,
-              'minute': pickedTime.minute,
-              'enabled': false,
-              'weekDay': List.filled(7, true),
-              'feedDuration': 2
-            }
-          ]
-        });
-      } else {
-        requestURL =
-            "${dotenv.env['CRUD_API']!}/api/schedule/client/${UserInfo.productId}";
-        jsonBody = json.encode({
-          'hour': pickedTime.hour,
-          'minute': pickedTime.minute,
-          'enabled': false,
-          'weekDay': List.filled(7, true),
-          'feedDuration': 2
-        });
-      }
-      */
 
       String requestURL =
           "${dotenv.env['CRUD_API']!}/api/schedule/client/${UserInfo.productId}";
@@ -266,25 +233,6 @@ class _SchedulePageState extends State<SchedulePage> {
           body: jsonBody);
 
       if (response.statusCode == 200) {
-        /*
-        if (newUserWithNoSchedules == true) {
-          var jsonResponse =
-              convert.jsonDecode(response.body) as Map<String, dynamic>;
-          // print(jsonResponse.toString());
-          // var jsonParsedData = jsonResponse['data'][0];
-          UserInfo.generalScheduleDatabaseId = jsonResponse['data']['_id'];
-          print(UserInfo.generalScheduleDatabaseId);
-
-          UserInfo.preferences.setString('generalScheduleDatabaseId',
-              UserInfo.generalScheduleDatabaseId as String);
-          print(
-              "Successfully added item schedule on database as a new user...");
-          // Reset variable since user has new schedule now...
-          newUserWithNoSchedules = false;
-        } else {
-          print("Successfully added item schedule on existing database");
-        }
-        */
         print("Successfully added item schedule on existing database");
       } else {
         print("Failed to add item schedule on database");
@@ -301,6 +249,7 @@ class _SchedulePageState extends State<SchedulePage> {
   void editTimeItem(int indexOfItemToBeEdited) async {
     // Set initial time as the time of the item
     TimeOfDay? pickedTime = await showTimePicker(
+      initialEntryMode: TimePickerEntryMode.dialOnly,
       // initialTime: TimeOfDay.fromDateTime(Schedule.listOfTimes[indexOfItemToBeEdited].data),
       initialTime: TimeOfDay.fromDateTime(
           DateTimeService.getDateWithHourAndMinuteSet(
@@ -345,8 +294,8 @@ class _SchedulePageState extends State<SchedulePage> {
     if (scheduleController.isSelecting == true) {
       return [
         IconButton(
-          icon: const Icon(Icons.select_all_rounded,
-              color: Color.fromARGB(255, 33, 31, 103)),
+          icon: Icon(Icons.select_all_rounded,
+              color: Theme.of(context).primaryColor),
           onPressed: () {
             setState(() {
               scheduleController.toggleAll();
@@ -354,8 +303,8 @@ class _SchedulePageState extends State<SchedulePage> {
           },
         ),
         IconButton(
-          icon: const Icon(Icons.delete_forever_rounded,
-              color: Color.fromARGB(255, 33, 31, 103)),
+          icon: Icon(Icons.delete_forever_rounded,
+              color: Theme.of(context).primaryColor),
           onPressed: () {
             deleteSelectedItems();
           },
@@ -582,9 +531,11 @@ class _SchedulePageState extends State<SchedulePage> {
                   'Sat',
                 ],
                 // selectedFillColor: Theme.of(context).primaryColor,
+                selectedFillColor: Theme.of(context).secondaryHeaderColor,
+                // selectedColor: Theme.of(context).primaryColor,
                 // selectedColor: Theme.of(context).unselectedWidgetColor,
-                // disabledColor: Theme.of(context).unselectedWidgetColor,
-                // disabledFillColor: Theme.of(context).secondaryHeaderColor
+                // disabledColor: Theme.of(context).primaryColor,
+                // disabledFillColor: Theme.of(context).unselectedWidgetColor
               ),
             ),
             Column(

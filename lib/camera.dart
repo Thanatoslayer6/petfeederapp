@@ -174,11 +174,8 @@ class _CameraState extends State<Camera> {
             FloatingActionButton.extended(
                 heroTag: "musicBtn",
                 backgroundColor: isMusicPlaying
-                    // ? const Color.fromARGB(200, 33, 31, 103)
-                    // : Colors.blueGrey.shade400,
-
                     ? Theme.of(context).primaryColor
-                    : Theme.of(context).unselectedWidgetColor,
+                    : Theme.of(context).scaffoldBackgroundColor,
                 onPressed: recorder.isRecording == true
                     ? null
                     : () {
@@ -234,7 +231,7 @@ class _CameraState extends State<Camera> {
                     // : Colors.blueGrey.shade400,
 
                     ? Theme.of(context).primaryColor
-                    : Theme.of(context).unselectedWidgetColor,
+                    : Theme.of(context).scaffoldBackgroundColor,
                 onPressed: isMusicPlaying
                     ? null
                     : () async {

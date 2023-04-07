@@ -125,7 +125,7 @@ class _StartScreenState extends State<StartScreen> {
                 child: TextFormField(
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter the Wi-Fi password for your home network';
+                      return 'Please enter the WiFi password for your home network';
                     }
                     return null;
                   },
@@ -136,16 +136,12 @@ class _StartScreenState extends State<StartScreen> {
                   obscureText: _wifiPassVisibility,
                   decoration: InputDecoration(
                       errorMaxLines: 2,
-                      // focusedBorder: OutlineInputBorder(
-                      //   // width: 0.0 produces a thin "hairline" border
-                      //   borderSide: BorderSide(
-                      //       // color: Color.fromARGB(255, 33, 31, 103),
-                      //       color: Theme.of(context).primaryColor,
-                      //       width: 2.0),
-                      // ),
-                      hintText: "Wi-Fi Password",
+                      hintText: "WiFi Password",
                       helperText:
-                          "Wi-Fi password of the network you're connected to",
+                          "WiFi password of the network you're connected to",
+                      // helperStyle: Theme.of(context).textTheme.bodyText1,
+                      helperStyle:
+                          TextStyle(color: Theme.of(context).disabledColor),
                       helperMaxLines: 2,
                       suffixIcon: IconButton(
                           onPressed: () {
@@ -479,6 +475,7 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Text("Provisioning Status",
             style: TextStyle(color: Theme.of(context).primaryColor)),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -494,7 +491,10 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
                         color: Theme.of(context).secondaryHeaderColor,
                       )
                     : (UserInfo.WifiAuthenticationStatus == 1) // Fail
-                        ? const Icon(Icons.warning_rounded)
+                        ? Icon(
+                            Icons.warning_rounded,
+                            color: Theme.of(context).secondaryHeaderColor,
+                          )
                         : Icon(
                             Icons.check_rounded,
                             color: Theme.of(context).secondaryHeaderColor,
@@ -524,7 +524,10 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
                         backgroundColor: Theme.of(context).primaryColor,
                       )
                     : (UserInfo.ProductAuthenticationStatus == 4) // Fail
-                        ? const Icon(Icons.warning_rounded)
+                        ? Icon(
+                            Icons.warning_rounded,
+                            color: Theme.of(context).secondaryHeaderColor,
+                          )
                         : Icon(
                             // Fail
                             Icons.check_rounded,
@@ -550,12 +553,14 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
                 width: 32,
                 child: (UserInfo.ProductAuthenticationStatus == 3) // Loading
                     ? CircularProgressIndicator(
-                        // backgroundColor: Colors.green,
                         color: Theme.of(context).secondaryHeaderColor,
                         backgroundColor: Theme.of(context).primaryColor,
                       )
                     : (UserInfo.ProductAuthenticationStatus == 4) // Fail
-                        ? const Icon(Icons.warning_rounded)
+                        ? Icon(
+                            Icons.warning_rounded,
+                            color: Theme.of(context).secondaryHeaderColor,
+                          )
                         : Icon(
                             Icons.check_rounded,
                             color: Theme.of(context).secondaryHeaderColor,
