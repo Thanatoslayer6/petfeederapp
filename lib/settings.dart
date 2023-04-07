@@ -59,11 +59,11 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        // mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Container(
+              padding: EdgeInsets.only(bottom: getadaptiveTextSize(context, 8)),
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              height: getadaptiveTextSize(context, 128),
+              height: getadaptiveTextSize(context, 96),
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
                 color: Theme.of(context).secondaryHeaderColor,
@@ -75,14 +75,17 @@ class _SettingsState extends State<Settings> {
                           UserInfo.isAppConnectedToWiFi == null)
                       ? Icons.wifi_off_rounded
                       : Icons.wifi_rounded,
-                  size: getadaptiveTextSize(context, 96),
+                  size: getadaptiveTextSize(context, 64),
                   color: Theme.of(context).scaffoldBackgroundColor,
                 ),
                 title: Column(
+                  mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     RichText(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         text: 'SSID: ',
                         style: TextStyle(
@@ -97,6 +100,7 @@ class _SettingsState extends State<Settings> {
                                 ? "None"
                                 : wifiName,
                             style: TextStyle(
+                                fontSize: getadaptiveTextSize(context, 16),
                                 fontWeight: FontWeight.w300,
                                 color: (UserInfo.isAppConnectedToWiFi ==
                                             ConnectivityResult.none ||
@@ -108,7 +112,6 @@ class _SettingsState extends State<Settings> {
                         ],
                       ),
                     ),
-
                     RichText(
                       text: TextSpan(
                         text: 'Status: ',
@@ -121,20 +124,20 @@ class _SettingsState extends State<Settings> {
                             text: (UserInfo.isAppConnectedToWiFi ==
                                         ConnectivityResult.none ||
                                     UserInfo.isAppConnectedToWiFi == null)
-                                ? "Disconnected"
-                                : "Connected",
+                                ? "Offline"
+                                : "Online",
                             style: TextStyle(
+                                fontSize: getadaptiveTextSize(context, 16),
                                 fontWeight: FontWeight.w300,
                                 color: (UserInfo.isAppConnectedToWiFi ==
                                             ConnectivityResult.none ||
                                         UserInfo.isAppConnectedToWiFi == null)
-                                    ? Colors.redAccent[200]
-                                    : Colors.greenAccent[200]),
+                                    ? const Color.fromARGB(255, 255, 69, 0)
+                                    : const Color.fromARGB(255, 0, 150, 136)),
                           ),
                         ],
                       ),
                     ),
-
                     RichText(
                       text: TextSpan(
                         text: 'Local IP: ',
@@ -150,6 +153,7 @@ class _SettingsState extends State<Settings> {
                                   ? "0.0.0.0"
                                   : localIP,
                               style: TextStyle(
+                                  fontSize: getadaptiveTextSize(context, 16),
                                   fontWeight: FontWeight.w300,
                                   color: (UserInfo.isAppConnectedToWiFi ==
                                               ConnectivityResult.none ||
@@ -160,56 +164,9 @@ class _SettingsState extends State<Settings> {
                         ],
                       ),
                     ),
-                    // Text(
-                    //   "Status",
-                    //   style: TextStyle(
-                    //       fontSize: getadaptiveTextSize(context, 20),
-                    //       color: Theme.of(context).scaffoldBackgroundColor),
-                    // ),
-                    // Text(
-                    //   "Local IP: 192.168.1.1",
-                    //   // UserInfo.package.version,
-                    //   style: TextStyle(
-                    //       color: Theme.of(context).scaffoldBackgroundColor),
-                    // ),
                   ],
                 ),
               )),
-          /*
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            height: getadaptiveTextSize(context, 128),
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            // child: Row(
-            //   children: const [
-            //     Icon(Icons.wifi_rounded, size: 256)
-            //     // ListTile(
-            //     //   title: Icon(
-            //     //     Icons.wifi_rounded,
-            //     //     size: 24,
-            //     //   ),
-            //     // )
-            //   ],
-            // ),
-          ),
-          */
-          // ConnectionStatus()
-          // Padding(
-          //   padding: const EdgeInsets.all(16.0),
-          //   child: Text(_sharedPrefsData),
-          // ),
-          // ElevatedButton(
-          //   onPressed: () async {
-          //     final prefs = await SharedPreferences.getInstance();
-          //     await prefs.clear();
-          //     // Perform any other actions you need after clearing shared preferences
-          //   },
-          //   child: const Text('Clear Data'),
-          // ),
           // NOTIFICATIONS
           Row(
             children: [
