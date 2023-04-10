@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -13,7 +14,7 @@ class MQTT {
 
   static connectToBroker(String? id) async {
     productId = id ?? "UnknownClientUser"; // Assign productId
-    print("Connecting to Private MQTT Broker using id: $productId");
+    log("Connecting to Private MQTT Broker using id: $productId");
     ByteData letsEncryptCA =
         await rootBundle.load('assets/certs/lets-encrypt-r3.pem');
     SecurityContext context = SecurityContext.defaultContext;
@@ -38,7 +39,7 @@ class MQTT {
     try {
       await client.connect();
     } catch (e) {
-      print("Service cannot connect to MQTT Broker - $e");
+      log("Service cannot connect to MQTT Broker - $e");
     }
   }
 
@@ -53,35 +54,31 @@ class MQTT {
 
   /// The successful connect callback
   static void onConnected() {
-    print("Connected to Private HiveMQ MQTT Broker successfully!");
+    log("Connected to Private HiveMQ MQTT Broker successfully!");
     isConnected = true;
   }
 
   /// The unsolicited disconnect callback
   static void onDisconnected() {
-    print(
-        'EXAMPLE::OnDisconnected client callback - Client disconnection from private broker');
+    log('EXAMPLE::OnDisconnected client callback - Client disconnection from private broker');
     isConnected = false;
     if (client.connectionStatus!.disconnectionOrigin ==
         MqttDisconnectionOrigin.solicited) {
-      print('EXAMPLE::OnDisconnected callback is solicited, this is correct');
+      log('EXAMPLE::OnDisconnected callback is solicited, this is correct');
     } else {
-      print(
-          'EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
+      log('EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
       exit(-1);
     }
   }
 
   /// The pre auto re connect callback
   static void onAutoReconnect() {
-    print(
-        'EXAMPLE::onAutoReconnect client callback - Client auto reconnection sequence will start');
+    log('EXAMPLE::onAutoReconnect client callback - Client auto reconnection sequence will start');
   }
 
   /// The post auto re connect callback
   static void onAutoReconnected() {
-    print(
-        'EXAMPLE::onAutoReconnected client callback - Client auto reconnection sequence has completed');
+    log('EXAMPLE::onAutoReconnected client callback - Client auto reconnection sequence has completed');
   }
 }
 
@@ -93,7 +90,7 @@ class MQTTPublic {
 
   static connectToBroker(String? id) async {
     productId = id ?? "UnknownClientUser"; // Assign productId
-    print("Connecting to Public MQTT Broker using id: $productId");
+    log("Connecting to Public MQTT Broker using id: $productId");
     // ByteData letsEncryptCA =
     //     await rootBundle.load('assets/certs/lets-encrypt-r3.pem');
     // SecurityContext context = SecurityContext.defaultContext;
@@ -130,34 +127,30 @@ class MQTTPublic {
 
   /// The successful connect callback
   static void onConnected() {
-    print("Connected to Public HiveMQ MQTT Broker successfully!");
+    log("Connected to Public HiveMQ MQTT Broker successfully!");
     isConnected = true;
   }
 
   /// The unsolicited disconnect callback
   static void onDisconnected() {
-    print(
-        'EXAMPLE::OnDisconnected client callback - Client disconnection from public broker');
+    log('EXAMPLE::OnDisconnected client callback - Client disconnection from public broker');
     isConnected = false;
     if (client.connectionStatus!.disconnectionOrigin ==
         MqttDisconnectionOrigin.solicited) {
-      print('EXAMPLE::OnDisconnected callback is solicited, this is correct');
+      log('EXAMPLE::OnDisconnected callback is solicited, this is correct');
     } else {
-      print(
-          'EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
+      log('EXAMPLE::OnDisconnected callback is unsolicited or none, this is incorrect - exiting');
       exit(-1);
     }
   }
 
   /// The pre auto re connect callback
   static void onAutoReconnect() {
-    print(
-        'EXAMPLE::onAutoReconnect client callback - Client auto reconnection sequence will start');
+    log('EXAMPLE::onAutoReconnect client callback - Client auto reconnection sequence will start');
   }
 
   /// The post auto re connect callback
   static void onAutoReconnected() {
-    print(
-        'EXAMPLE::onAutoReconnected client callback - Client auto reconnection sequence has completed');
+    log('EXAMPLE::onAutoReconnected client callback - Client auto reconnection sequence has completed');
   }
 }

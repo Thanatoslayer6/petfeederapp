@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:petfeederapp/preferences.dart';
@@ -31,14 +32,14 @@ class UVLightHandler {
       'timeStarted': DateTimeService.timeNow.toString(),
       'duration': duration
     }));
-    print("Done writing UV status to file");
+    log("Done writing UV status to file");
   }
 
   Future<void> removeFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/uv_status.json');
     await file.delete();
-    print("UV status file has been deleted");
+    log("UV status file has been deleted");
   }
 
   Future<void> getStateFromFile() async {
@@ -54,9 +55,9 @@ class UVLightHandler {
       } else {
         UserInfo.isUVLightActivated = true;
       }
-      print("UV Light status file exists...");
+      log("UV Light status file exists...");
     } else {
-      print("No UV Light status file exists...");
+      log("No UV Light status file exists...");
       UserInfo.isUVLightActivated = false;
     }
   }

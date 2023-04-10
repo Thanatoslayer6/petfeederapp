@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert' as convert;
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:esp_smartconfig/esp_smartconfig.dart';
@@ -261,7 +262,7 @@ Future<int> espSmartConfig() async {
 
   final provisioner = Provisioner.espTouchV2();
   provisioner.listen((response) {
-    print("$response has been connected to WiFi!");
+    log("$response has been connected to WiFi!");
     didWifiConnect = 2; // Success
     provisioner.stop();
   });
@@ -276,15 +277,15 @@ Future<int> espSmartConfig() async {
   } catch (e) {
     didWifiConnect = 1;
     provisioner.stop();
-    print(e);
+    // log(e as String);
   }
   await Future.delayed(const Duration(seconds: 8));
   if (didWifiConnect == 0) {
-    print("Stopping now, nothing happened in the past 10 seconds");
+    log("Stopping now, nothing happened in the past 10 seconds");
     didWifiConnect = 1;
     provisioner.stop();
   }
-  print("Returning $didWifiConnect (fail = 1, success = 2) now!!!");
+  log("Returning $didWifiConnect (fail = 1, success = 2) now!!!");
   return didWifiConnect;
 }
 
@@ -331,7 +332,7 @@ Future<int> validateProductCredentials() async {
     UserInfo.isSubscribedToAuthTopic = false;
   }
   subscription.cancel();
-  print("Returning $isProductValid (fail = 4, success = 5) now!!!");
+  log("Returning $isProductValid (fail = 4, success = 5) now!!!");
   return isProductValid;
 }
 
@@ -418,7 +419,7 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
         UserInfo.MQTTAuthenticationStatus != -1) {
       await mqttConfiguration();
       // Wait for about 3 seconds to avoid race problems
-      print("waiting for about 3 seconds to let the device connect first");
+      log("waiting for about 3 seconds to let the device connect first");
       await Future.delayed(const Duration(seconds: 3));
     }
     // Execute code block below if mqtt is connected but product is not validated
@@ -429,7 +430,7 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
     if (UserInfo.WifiAuthenticationStatus == 2 &&
         UserInfo.MQTTAuthenticationStatus == -1 &&
         UserInfo.ProductAuthenticationStatus == 5) {
-      print("Success! on initialization, creating records on database now");
+      log("Success! on initialization, creating records on database now");
 
       // Create a schedule document for the user
       final response1 = await http.post(
@@ -440,7 +441,7 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
         }),
         headers: {'Content-Type': 'application/json'},
       );
-      print(response1.body);
+      log(response1.body);
 
       // Create a log document for the user
       final response2 = await http.post(
@@ -451,7 +452,7 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
         }),
         headers: {'Content-Type': 'application/json'},
       );
-      print(response2.body);
+      log(response2.body);
 
       Timer(const Duration(seconds: 2), () {
         Navigator.of(context).pop(
@@ -468,7 +469,7 @@ class _ConnectingDialogState extends State<ConnectingDialog> {
 
   @override
   void dispose() {
-    print("~~~~~~~ CLOSING THE DIALOG NOW ~~~~~~~~");
+    log("~~~~~~~ CLOSING THE DIALOG NOW ~~~~~~~~");
     super.dispose();
   }
 

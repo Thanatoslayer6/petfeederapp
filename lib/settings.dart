@@ -1,15 +1,15 @@
+// ignore_for_file: depend_on_referenced_packages, deprecated_member_use
+
+import 'dart:developer';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:petfeederapp/adaptive.dart';
-import 'package:petfeederapp/main.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'notification.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -25,6 +25,7 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  // ignore: unused_field
   String _sharedPrefsData = "";
   String? wifiName = "";
   String? localIP = "";
@@ -42,7 +43,7 @@ class _SettingsState extends State<Settings> {
     wifiName = temp?.substring(1, temp.length - 1);
 
     // var wifiName = temp?.substring(1, temp.length - 1);
-    print(wifiName);
+    // log(wifiName as String);
     localIP = await info.getWifiIP(); // Get local ip
     setState(() {
       _sharedPrefsData = data;
@@ -184,7 +185,7 @@ class _SettingsState extends State<Settings> {
                         value: serviceStatus,
                         onChanged: (value) async {
                           if (value) {
-                            print("Enabling notifications...");
+                            log("Enabling notifications...");
                             await BackgroundTask().initService();
                             UserInfo.preferences
                                 .setBool('isNotificationsEnabled', true);
@@ -216,7 +217,7 @@ class _SettingsState extends State<Settings> {
           // Theming
           GestureDetector(
             onTap: (() {
-              print("Clicked on themes and accent");
+              log("Clicked on themes and accent");
               showGeneralDialog(
                 context: context,
                 pageBuilder: (context, a1, a2) {
@@ -237,7 +238,7 @@ class _SettingsState extends State<Settings> {
                       .read<ThemeProvider>()
                       .toggleTheme(returnedTheme as String);
                 } else {
-                  print("User cancelled selecting themes...");
+                  log("User cancelled selecting themes...");
                 }
                 setState(() {});
               });
@@ -278,7 +279,7 @@ class _SettingsState extends State<Settings> {
           // Help and support
           GestureDetector(
             onTap: (() {
-              print("Clicked on help and support");
+              log("Clicked on help and support");
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -322,7 +323,7 @@ class _SettingsState extends State<Settings> {
           // About us
           GestureDetector(
             onTap: (() {
-              print("Clicked on About us");
+              log("Clicked on About us");
               showGeneralDialog(
                 barrierDismissible: true, // this makes the dialog dismissible
                 barrierLabel:
@@ -768,8 +769,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
     PackageInfo.fromPlatform().then((value) => {
           setState(() {
             package = value;
-            print(
-                "${package.appName} - ${package.version} - ${package.buildNumber}");
+            log("${package.appName} - ${package.version} - ${package.buildNumber}");
           })
         });
   }
@@ -818,7 +818,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             onTap: () {
-              print("Tapped on authors");
+              log("Tapped on authors");
               launchUrl(Uri.parse('https://github.com/Thanatoslayer6'),
                   mode: LaunchMode.externalApplication);
             },
@@ -833,7 +833,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             onTap: () {
-              print("Tapped on facebook");
+              log("Tapped on facebook");
               launchUrl(Uri.parse('https://facebook.com/ClevTechPH'),
                   mode: LaunchMode.externalApplication);
             },

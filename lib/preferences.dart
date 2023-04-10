@@ -1,3 +1,7 @@
+// ignore_for_file: non_constant_identifier_names
+
+import 'dart:developer';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,7 +16,6 @@ class UserInfo {
   static bool? isNotificationsEnabled;
   static bool isUVLightActivated = false;
   static ConnectivityResult? isAppConnectedToWiFi;
-  // TODO: Theme preferences in the future
 
   static int MQTTAuthenticationStatus = -3;
   static int WifiAuthenticationStatus = 0;
@@ -22,7 +25,7 @@ class UserInfo {
 
   Future initializeSharedPreferences() async {
     preferences = await SharedPreferences.getInstance();
-    print("Shared preferences now initialized...");
+    log("Shared preferences now initialized...");
   }
 
   void getStoredData() {

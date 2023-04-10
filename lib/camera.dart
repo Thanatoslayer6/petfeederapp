@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 // import 'package:flutter/foundation.dart';
@@ -88,7 +89,7 @@ class _CameraState extends State<Camera> {
     FFmpegKit.execute(ffmpegCommand).then((session) async {
       final returnCode = await session.getReturnCode();
       if (ReturnCode.isSuccess(returnCode)) {
-        print("Conversion successful");
+        log("Conversion successful");
         isConversionSuccessful = true;
 
         if (isConversionSuccessful) {
@@ -96,7 +97,7 @@ class _CameraState extends State<Camera> {
           if (MQTTPublic.isConnected) {
             String? serverIp = await NetworkInfo().getWifiIP(); // Get local ip
             String? audioURL = "http://$serverIp:8080/voice.mp3";
-            print(audioURL);
+            log(audioURL);
             MQTTPublic.publish(
                 "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
                 audioURL);
@@ -107,11 +108,11 @@ class _CameraState extends State<Camera> {
 
         // return;
       } else if (ReturnCode.isCancel(returnCode)) {
-        print("Conversion cancelled");
+        log("Conversion cancelled");
         isConversionSuccessful = false;
         // return;
       } else {
-        print("Conversion failed");
+        log("Conversion failed");
         isConversionSuccessful = false;
         // return;
       }
@@ -124,7 +125,7 @@ class _CameraState extends State<Camera> {
     final Directory cacheDirectory = await getTemporaryDirectory();
     final path = await recorder.stopRecorder();
     final audioFile = File(path!);
-    print("Recorded audio is at: $audioFile, converting to mp3 now...");
+    log("Recorded audio is at: $audioFile, converting to mp3 now...");
     convertAACtoMP3(audioFile.path, "${cacheDirectory.path}/voice.mp3");
   }
 
@@ -185,7 +186,7 @@ class _CameraState extends State<Camera> {
                                 "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
                                 "stop");
                             // Once successful and done we reset the flag
-                            print("stopping the music!");
+                            log("stopping the music!");
                             setState(() {
                               isMusicPlaying = false;
                             });

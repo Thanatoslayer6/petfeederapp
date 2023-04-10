@@ -1,4 +1,5 @@
 import 'dart:convert' as convert;
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 class Quotes {
@@ -25,7 +26,7 @@ class Quotes {
         return "Request failed with status: ${response.statusCode}";
       }
     } catch (e) {
-      print("Cannot get random quote - $e");
+      log("Cannot get random quote - $e");
     }
   }
 }

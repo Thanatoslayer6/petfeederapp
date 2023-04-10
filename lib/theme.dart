@@ -1,6 +1,7 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:petfeederapp/preferences.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemePreferences extends StatefulWidget {
@@ -33,7 +34,7 @@ class _ThemePreferencesState extends State<ThemePreferences> {
 
   @override
   Widget build(BuildContext context) {
-    // print(selectedTheme);
+    // log(selectedTheme);
     return AlertDialog(
       title: const Text('Select a theme'),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -72,9 +73,9 @@ class _ThemePreferencesState extends State<ThemePreferences> {
   }
 }
 
-// TODO: Fix the themes and stuff
 class ThemeModel {
   static ThemeData light = ThemeData(
+      brightness: Brightness.light,
       scaffoldBackgroundColor: const Color.fromARGB(255, 250, 250, 250),
       primaryColor: const Color.fromARGB(255, 33, 31, 103),
       secondaryHeaderColor: const Color.fromARGB(255, 42, 39, 150),
@@ -181,13 +182,13 @@ class ThemeModel {
 
   static final ThemeData solarizedLight = ThemeData(
       brightness: Brightness.light,
-      primaryColor: Color(0xff268bd2),
-      scaffoldBackgroundColor: Color(0xfffdf6e3),
+      primaryColor: const Color(0xff268bd2),
+      scaffoldBackgroundColor: const Color(0xfffdf6e3),
       secondaryHeaderColor: const Color(0xffd33682),
-      disabledColor: Color(0xff93a1a1),
-      selectedRowColor: Color(0xffeee8d5),
+      disabledColor: const Color(0xff93a1a1),
+      selectedRowColor: const Color(0xffeee8d5),
       // disabledColor: Color(0xff586e75),
-      unselectedWidgetColor: Color(0xffeee8d5),
+      unselectedWidgetColor: const Color(0xffeee8d5),
       textTheme: const TextTheme(
         subtitle1: TextStyle(color: Color(0xff586e75)),
         subtitle2: TextStyle(color: Color(0xff586e75)),
@@ -263,14 +264,14 @@ class ThemeModel {
   static ThemeData sweetLight = ThemeData(
       brightness: Brightness.light,
       primaryColor: const Color(0xffFF5D9E),
-      backgroundColor: const Color.fromARGB(255, 246, 246, 246),
+      // backgroundColor: const Color.fromARGB(255, 246, 246, 246),
       secondaryHeaderColor: const Color(0xffFFC529),
       scaffoldBackgroundColor: const Color.fromARGB(255, 240, 240, 240),
       // scaffoldBackgroundColor: Color.fromARGB(255, 248, 218, 236),
-      disabledColor: Color.fromARGB(255, 139, 139, 139),
+      disabledColor: const Color.fromARGB(255, 139, 139, 139),
       dividerColor: const Color(0xffE0E0E0),
       // unselectedWidgetColor: const Color(0xff9E9E9E),
-      unselectedWidgetColor: Color.fromARGB(255, 230, 230, 230),
+      unselectedWidgetColor: const Color.fromARGB(255, 230, 230, 230),
       textTheme: const TextTheme(
         bodyText2: TextStyle(color: Colors.black),
         bodyText1: TextStyle(color: Colors.black, fontWeight: FontWeight.w300),
@@ -289,21 +290,21 @@ class ThemeModel {
   static ThemeData solarizedDark = ThemeData(
       brightness: Brightness.dark,
       primaryColor: const Color(0xff839496),
-      backgroundColor: const Color(0xff002b36),
+      // backgroundColor: const Color(0xff002b36),
       secondaryHeaderColor: const Color(0xff93a1a1),
       scaffoldBackgroundColor: const Color(0xff002b36),
       disabledColor: const Color(0xff586e75),
       dividerColor: const Color(0xff586e75),
       unselectedWidgetColor: const Color(0xff586e75),
       textTheme: const TextTheme(
-        bodyText2: TextStyle(color: const Color(0xff839496)),
-        bodyText1: TextStyle(
-            color: const Color(0xff93a1a1), fontWeight: FontWeight.w300),
-        subtitle1: TextStyle(color: const Color(0xff839496)),
-        subtitle2: TextStyle(color: const Color(0xff657b83)),
-        headline6: TextStyle(color: const Color(0xff839496)),
-        headline2: TextStyle(color: const Color(0xff839496)),
-        headline1: TextStyle(color: const Color(0xff839496)),
+        bodyText2: TextStyle(color: Color(0xff839496)),
+        bodyText1:
+            TextStyle(color: Color(0xff93a1a1), fontWeight: FontWeight.w300),
+        subtitle1: TextStyle(color: Color(0xff839496)),
+        subtitle2: TextStyle(color: Color(0xff657b83)),
+        headline6: TextStyle(color: Color(0xff839496)),
+        headline2: TextStyle(color: Color(0xff839496)),
+        headline1: TextStyle(color: Color(0xff839496)),
       ),
       timePickerTheme: const TimePickerThemeData(
         dayPeriodTextColor: Color(0xff93a1a1),

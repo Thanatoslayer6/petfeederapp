@@ -1,4 +1,7 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:async';
+import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
@@ -8,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'mqtt.dart';
 import 'notification.dart';
-import 'preferences.dart';
 import 'time.dart';
 
 class BackgroundTask {
@@ -35,17 +37,17 @@ void onStart(ServiceInstance service) async {
   // SharedPreferences config = SharedPreferences;
   SharedPreferences preferences = await SharedPreferences.getInstance();
   String productId = preferences.getString('productId') as String;
-  print("The product ID is: $productId");
+  log("The product ID is: $productId");
   if (!MQTT.isConnected) {
-    print("Connecting/Reconnecting to MQTT Client");
+    log("Connecting/Reconnecting to MQTT Client");
     // Just connect to the broker with any name for now, since this is a separate thread
     await MQTT.connectToBroker("$productId-notification-${const Uuid().v1()}");
     // Subscribe to the topic
-    print("Subscribing service to necessary topic $productId/notifications");
+    log("Subscribing service to necessary topic $productId/notifications");
     try {
       MQTT.client.subscribe("$productId/notifications", MqttQos.atMostOnce);
     } catch (e) {
-      print("MQTT Service cannot subscribe to notifications topic - $e");
+      log("MQTT Service cannot subscribe to notifications topic - $e");
     }
   }
 
@@ -110,10 +112,10 @@ void onStart(ServiceInstance service) async {
             }
           });
         } else {
-          print("Not connected so first we connect... implement logic below");
+          log("Not connected so first we connect... implement logic below");
         }
       } else {
-        print("I'm running in the background...");
+        log("I'm running in the background...");
       }
     }
   });

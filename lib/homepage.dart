@@ -1,11 +1,11 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:async';
+import 'dart:developer';
 import 'package:path_provider/path_provider.dart';
 import 'package:petfeederapp/uvlight.dart';
 
 import 'dart:io';
-import 'package:shelf/shelf.dart';
-import 'package:mime/mime.dart';
+// ignore: depend_on_referenced_packages
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_static/shelf_static.dart';
 
@@ -47,7 +47,7 @@ class _HomepageState extends State<Homepage> {
     // Gets random quote if possible
     if (Quotes.hasQuote == false) {
       Quotes.getRandom().then((value) {
-        print(value);
+        log(value);
         setState(() {});
       });
     }
@@ -66,7 +66,7 @@ class _HomepageState extends State<Homepage> {
     Schedule.loadSchedule();
     UVLightHandler().getStateFromFile();
     setStateEveryMinute = Timer.periodic(const Duration(seconds: 10), (timer) {
-      print("Called 'setState()'");
+      log("Called 'setState()'");
       setState(() {});
     });
   }
@@ -93,8 +93,7 @@ class _HomepageState extends State<Homepage> {
       InternetAddress.anyIPv4,
       8080,
     );
-    print(
-        'Server running on ${await NetworkInfo().getWifiIP()}:${server.port}');
+    log('Server running on ${await NetworkInfo().getWifiIP()}:${server.port}');
     Homepage.isLocalServerRunning = true;
   }
 
@@ -103,8 +102,7 @@ class _HomepageState extends State<Homepage> {
     Homepage.activeSchedules = getScheduleInOrder();
     // Send schedule to the ESP32
     if (Homepage.wentToSchedule == true) {
-      print(
-          "Setting up schedule if user changes something... else this statement is meaningless");
+      log("Setting up schedule if user changes something... else this statement is meaningless");
       List minifiedDateTime = [];
       // Get only the datetime objects from their hour and minute, then send to esp32
       for (int i = 0; i < Homepage.activeSchedules.length; i++) {
@@ -117,9 +115,9 @@ class _HomepageState extends State<Homepage> {
       }
 
       String payload = convert.json.encode(minifiedDateTime);
-      print(payload);
+      log(payload);
       if (minifiedDateTime.isEmpty) {
-        print("Sending default values to microcontroller");
+        log("Sending default values to microcontroller");
         MQTT.publish(
             "${UserInfo.productId}/feed_schedule",
             convert.json.encode([
@@ -220,7 +218,7 @@ class _HomepageState extends State<Homepage> {
       return activeSchedules;
       // Print
     } else {
-      print("No items active, so no schedule will be set");
+      log("No items active, so no schedule will be set");
       // Send schedule to ESP32
       return [];
     }
@@ -306,7 +304,7 @@ class _HomepageState extends State<Homepage> {
         child: MaterialButton(
             onPressed: UserInfo.isUVLightActivated
                 ? () async {
-                    print("Deactivating UV Light!");
+                    log("Deactivating UV Light!");
                     MQTT.publish(
                         "${UserInfo.productId}/uvlight_duration", "stop");
                     UserInfo.isUVLightActivated = false;
@@ -730,7 +728,7 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
       'duration': _sliderValue.toInt(),
       'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
     });
-    print(requestURL);
+    log(requestURL);
     final response = await http.post(Uri.parse(requestURL),
         headers: {
           'Content-Type': 'application/json',
@@ -738,9 +736,9 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
         body: jsonBody);
 
     if (response.statusCode == 200) {
-      print("Successfully added item log on database");
+      log("Successfully added item log on database");
     } else {
-      print("Failed to add item log on database");
+      log("Failed to add item log on database");
     }
   }
 
@@ -753,7 +751,7 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
       'duration': _sliderValue.toInt(),
       'dateFinished': DateTimeService.getCurrentDateTimeFormatted(),
     });
-    print(requestURL);
+    log(requestURL);
     final response = await http.post(Uri.parse(requestURL),
         headers: {
           'Content-Type': 'application/json',
@@ -761,9 +759,9 @@ class _FeedMeDialogState extends State<FeedMeDialog> {
         body: jsonBody);
 
     if (response.statusCode == 200) {
-      print("Successfully added item log on database");
+      log("Successfully added item log on database");
     } else {
-      print("Failed to add item log on database");
+      log("Failed to add item log on database");
     }
   }
 
@@ -888,7 +886,6 @@ class EnableUVLightDialog extends StatefulWidget {
 }
 
 class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
-  // TODO: BEAUTIFY
   late StreamSubscription subscription;
   double _sliderValue = 15.0;
   bool starting = true;
@@ -1006,31 +1003,44 @@ class _EnableUVLightDialogState extends State<EnableUVLightDialog> {
                         "Warning",
                         // style: TextStyle(color: Theme.of(context).primaryColor),
                       ),
+                      // contentTextStyle: TextStyle(color: Theme.of(context).primaryColor),
                       content: RichText(
                         textAlign: TextAlign.justify,
                         text: TextSpan(
                           text:
                               "Extended exposure to UVC-Light can be harmful to your pet's skin and eyes. We recommend using this feature for",
                           style: TextStyle(
-                            // color: Theme.of(context).primaryColor,
+                            color: Theme.of(context).secondaryHeaderColor,
                             // color: Colors.black,
                             fontSize: 16.0,
                           ),
                           children: [
                             TextSpan(
                                 text: " no longer than 30 minutes at a time",
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
+                                )),
                             TextSpan(
                                 text:
-                                    ", avoid direct exposure to the light while it is on."),
+                                    ", avoid direct exposure to the light while it is on.",
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor)),
                             TextSpan(
                               text:
                                   " UVC-Light can cause skin and eye damage if used improperly. ",
-                              style: TextStyle(fontStyle: FontStyle.italic),
+                              style: TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                  color:
+                                      Theme.of(context).secondaryHeaderColor),
                             ),
                             TextSpan(
                               text: "\n\nPlease use with caution!",
                               style: TextStyle(
+                                  color:
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
                                   fontWeight: FontWeight.bold,
                                   fontSize: getadaptiveTextSize(context, 20)),
                             ),

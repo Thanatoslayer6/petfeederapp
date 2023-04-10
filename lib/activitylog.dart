@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -21,7 +23,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     History.listOfLogs = []; // Reset necessary variables just in case
     // History.didUserUpdate = false;
     getLogsFromDatabase().then((_) {
-      print("Got logs from the database, updating state now...");
+      log("Got logs from the database, updating state now...");
       setState(() {});
     });
     // }
@@ -39,12 +41,12 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
       History.generalHistoryDatabaseId = jsonParsedData['_id'];
       // Check if sharedPreferences doesn't have the database id... just save it
       if (UserInfo.generalHistoryDatabaseId == null) {
-        print("History database id is not saved, trying to save now...");
+        log("History database id is not saved, trying to save now...");
         UserInfo.preferences.setString(
             'generalHistoryDatabaseId', History.generalHistoryDatabaseId);
       }
 
-      print(jsonParsedData);
+      log(jsonParsedData);
       if (jsonParsedData.containsKey('items')) {
         // There is stored data...
         for (int i = 0; i < jsonParsedData['items'].length; i++) {
@@ -56,9 +58,9 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
               jsonParsedData['items'][i]['duration']));
         }
       }
-      //print(History);
+      //log(History);
     } else {
-      print("User doesn't have any logs within the database...");
+      log("User doesn't have any logs within the database...");
     }
   }
 

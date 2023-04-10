@@ -1,4 +1,7 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -33,7 +36,7 @@ class _SchedulePageState extends State<SchedulePage> {
       updateSchedulesToDatabase().then((_) async {
         await Schedule.saveSchedule();
       });
-      print("Disposing schedule stack and saving the contents to file now");
+      log("Disposing schedule stack and saving the contents to file now");
       Schedule.didModifySchedule = false;
     }
   }
@@ -76,9 +79,9 @@ class _SchedulePageState extends State<SchedulePage> {
         },
         body: jsonBody);
     if (response.statusCode == 200) {
-      print("Successfully updated item: ${UserInfo.generalScheduleDatabaseId}");
+      log("Successfully updated item: ${UserInfo.generalScheduleDatabaseId}");
     } else {
-      print("Failed to update item: ${UserInfo.generalScheduleDatabaseId}");
+      log("Failed to update item: ${UserInfo.generalScheduleDatabaseId}");
     }
   }
 
@@ -92,17 +95,17 @@ class _SchedulePageState extends State<SchedulePage> {
       // If client exists in the database, set up the variables
       var jsonResponse =
           convert.jsonDecode(response.body) as Map<String, dynamic>;
-      print(jsonResponse);
+      log(jsonResponse as String);
 
       if (jsonResponse['data'].length > 0) {
         var jsonParsedData = jsonResponse['data'][0];
         if (UserInfo.generalScheduleDatabaseId == null) {
           UserInfo.generalScheduleDatabaseId = jsonParsedData['_id'];
-          print("Schedule database id is not saved, trying to save now...");
+          log("Schedule database id is not saved, trying to save now...");
           UserInfo.preferences.setString('generalScheduleDatabaseId',
               UserInfo.generalScheduleDatabaseId as String);
         }
-        print(jsonParsedData);
+        log(jsonParsedData);
         if (jsonParsedData.containsKey('items')) {
           // There is stored data...
           for (int i = 0; i < jsonParsedData['items'].length; i++) {
@@ -116,12 +119,11 @@ class _SchedulePageState extends State<SchedulePage> {
                 List<bool>.from(jsonParsedData['items'][i]['weekDay']);
           }
         }
-        // print(Schedule.listOfTimes.toList());
-        // print(Schedule.listOfTimes.length);
+        // log(Schedule.listOfTimes.toList());
+        // log(Schedule.listOfTimes.length);
       } else {
         // New user
-        print(
-            "User doesn't have stored items in database... will add on next add");
+        log("User doesn't have stored items in database... will add on next add");
         // newUserWithNoSchedules = true;
       }
     } else {
@@ -224,7 +226,7 @@ class _SchedulePageState extends State<SchedulePage> {
         'weekDay': List.filled(7, true),
         'feedDuration': 2
       });
-      print(requestURL);
+      log(requestURL);
 
       final response = await http.post(Uri.parse(requestURL),
           headers: {
@@ -233,12 +235,12 @@ class _SchedulePageState extends State<SchedulePage> {
           body: jsonBody);
 
       if (response.statusCode == 200) {
-        print("Successfully added item schedule on existing database");
+        log("Successfully added item schedule on existing database");
       } else {
-        print("Failed to add item schedule on database");
+        log("Failed to add item schedule on database");
       }
     } else {
-      print("User cancelled");
+      log("User cancelled");
     }
     setState(() {
       // Update controller length
@@ -272,7 +274,7 @@ class _SchedulePageState extends State<SchedulePage> {
         Schedule.listOfTimes[indexOfItemToBeEdited].minute = pickedTime.minute;
       });
     } else {
-      print("User cancelled editing time");
+      log("User cancelled editing time");
     }
   }
 
@@ -342,7 +344,7 @@ class _SchedulePageState extends State<SchedulePage> {
             isSelecting: controller.isSelecting,
             onSelected: () {
               setState(() {
-                // print("Hello World");
+                // log("Hello World");
                 // Disable editing when user tries to select an item
                 Schedule.listOfTimes[index].isEditingNow = false;
                 controller.toggle(index);
@@ -355,10 +357,10 @@ class _SchedulePageState extends State<SchedulePage> {
                   padding: const EdgeInsets.all(8),
                   // START OF CONTAINER CHILDREN (LISTTILE)
                   child: ListTile(
-                    title:
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            // CHILDREN OF LISTTILE
-                            children: [
+                    title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        // CHILDREN OF LISTTILE
+                        children: [
                           // ignore: avoid_unnecessary_containers
                           Container(
                             child: Column(
@@ -367,7 +369,7 @@ class _SchedulePageState extends State<SchedulePage> {
                                 GestureDetector(
                                   onTap: () {
                                     editTimeItem(index);
-                                    print("Editing time now");
+                                    log("Editing time now");
                                   },
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -478,8 +480,8 @@ class _SchedulePageState extends State<SchedulePage> {
                             ],
                           ),
                         ]
-                            // END OF CHILDREN OF LISTTLE
-                            ),
+                        // END OF CHILDREN OF LISTTLE
+                        ),
                   ),
                 ),
                 // END FIRST CONTAINER
@@ -513,7 +515,7 @@ class _SchedulePageState extends State<SchedulePage> {
               child: WeekdaySelector(
                 // We display the last tapped value in the example app
                 onChanged: (int day) {
-                  // print(printIntAsDay(day));
+                  // log(printIntAsDay(day));
                   setState(() {
                     Schedule.listOfTimes[index].weekDaysIndex[day % 7] =
                         !Schedule.listOfTimes[index].weekDaysIndex[day % 7];
@@ -586,7 +588,7 @@ class Schedule {
   static Future<File> _getFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
-    print("$path/schedule.json");
+    log("$path/schedule.json");
     return File('$path/schedule.json');
   }
 
@@ -602,7 +604,7 @@ class Schedule {
       final file = await _getFile();
       final jsonString = await file.readAsString();
       final jsonList = json.decode(jsonString) as List<dynamic>;
-      print(jsonList.toString());
+      log(jsonList.toString());
       Schedule.listOfTimes.clear();
       for (int i = 0; i < jsonList.length; i++) {
         /* final hour = jsonList[i]['hour'] as int; */
@@ -628,7 +630,7 @@ class Schedule {
       /*           ..databaseId = jsonListItem['databaseId']) */
       /*     .toList(); */
     } catch (e) {
-      print('Failed to load schedule: $e');
+      log('Failed to load schedule: $e');
     }
   }
 }

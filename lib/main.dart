@@ -1,11 +1,13 @@
 // import 'dart:io';
 import 'dart:async';
+import 'dart:developer';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:petfeederapp/theme.dart';
+// ignore: depend_on_referenced_packages
 import 'package:provider/provider.dart';
 import 'notification.dart';
 import 'start.dart';
@@ -36,19 +38,19 @@ Future main() async {
 
   // Request location permissions for smartconfig
   if (await Permission.location.request().isGranted) {
-    print("Location permissions are granted");
+    log("Location permissions are granted");
   }
   // Request microphone permissions for sending audio
   if (await Permission.microphone.request().isGranted) {
-    print("Microphone permissions are granted");
+    log("Microphone permissions are granted");
   }
 
   // Request storage perms
   if (await Permission.storage.request().isGranted) {
-    print("Storage permissions are granted!");
+    log("Storage permissions are granted!");
   }
   if (await Permission.manageExternalStorage.request().isGranted) {
-    print("External storage now granted");
+    log("External storage now granted");
   }
 
   runApp(const MyApp());
@@ -91,7 +93,7 @@ class _MyAppState extends State<MyApp> {
     app = UserInfo();
     await app.initializeSharedPreferences();
     app.getStoredData();
-    UserInfo.preferences.setString('productId', "beta12345");
+    // UserInfo.preferences.setString('productId', "beta12345");
     // Start the notification service...
   }
 
@@ -109,14 +111,14 @@ class _MyAppState extends State<MyApp> {
               final result = snapshot.data;
               UserInfo.isAppConnectedToWiFi = snapshot.data;
               // TODO: Set this condition to false for demoing in order to bypass start screen for new users
-              if (UserInfo.isUserNew == false) {
-                // if (UserInfo.isUserNew == true) {
+              // if (UserInfo.isUserNew == false) {
+              if (UserInfo.isUserNew == true) {
                 return StartScreen(
                     result: result, updateUserStatus: updateUserStatus);
               } else {
                 // START (remove this after testing)
-                UserInfo.productId = "beta12345";
-                UserInfo.devicePassword = "beta12345";
+                // UserInfo.productId = "beta12345";
+                // UserInfo.devicePassword = "beta12345";
                 // END
                 if (result == ConnectivityResult.none || result == null) {
                   return const DefaultTabController(

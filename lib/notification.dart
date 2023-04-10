@@ -1,5 +1,11 @@
+// ignore_for_file: constant_identifier_names
+
+import 'dart:developer';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// ignore: depend_on_referenced_packages
 import 'package:timezone/timezone.dart' as tz;
+// ignore: depend_on_referenced_packages
 import 'package:timezone/data/latest.dart' as tz;
 
 class NotificationAPI {
@@ -18,7 +24,7 @@ class NotificationAPI {
     const settings = InitializationSettings(android: android, iOS: IOS);
     await _notifications.initialize(settings,
         onDidReceiveNotificationResponse: (payload) async {
-      print("You clicked on the notification");
+      log("You clicked on the notification");
     });
   }
 

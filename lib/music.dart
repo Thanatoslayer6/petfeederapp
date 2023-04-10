@@ -1,5 +1,6 @@
-import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:audiotagger/audiotagger.dart';
 import 'package:audiotagger/models/tag.dart';
 import 'package:file_picker/file_picker.dart';
@@ -16,8 +17,14 @@ class AudioItem {
   late String songName;
   late String cleanedSongName;
   late String artist;
-  AudioItem(this.originalPath, this.fileURL, this.songName,
-      this.cleanedSongName, this.artist); //Constructor to assign the data
+  late Uint8List? artwork;
+  AudioItem(
+      this.originalPath,
+      this.fileURL,
+      this.songName,
+      this.cleanedSongName,
+      this.artist,
+      this.artwork); //Constructor to assign the data
 }
 
 class MusicPage extends StatefulWidget {
@@ -56,7 +63,7 @@ class _MusicPageState extends State<MusicPage> {
           files.where((file) => file.path.endsWith('.mp3')).toList();
 
       if (mp3Files.isEmpty) {
-        print("No .mp3 files found...");
+        log("No .mp3 files found...");
       } else {
         // Assign the files into a global variable
         for (var file in mp3Files) {
@@ -66,9 +73,10 @@ class _MusicPageState extends State<MusicPage> {
           String fileURL =
               "http://$serverIp:8080/file_picker/${songName.replaceAll(RegExp(r'\s'), '%20')}";
           String artist = await getArtistTag(file.path);
-          print("The stuff is: $songName - $artist => $fileURL");
-          audioFiles.add(
-              AudioItem(file.path, fileURL, songName, cleanedSongName, artist));
+          Uint8List? artwork = await getArtwork(file.path);
+          log("The stuff is: $songName - $artist => $fileURL");
+          audioFiles.add(AudioItem(
+              file.path, fileURL, songName, cleanedSongName, artist, artwork));
         }
       }
     }
@@ -80,8 +88,14 @@ class _MusicPageState extends State<MusicPage> {
     Tag? tag = await tagger.readTags(path: audioFilePath);
 
     String artist = tag?.artist ?? "Unknown Artist";
-    print("Artist is: $artist");
+    log("Artist is: $artist");
     return artist;
+  }
+
+  Future<Uint8List?> getArtwork(String audioFilePath) async {
+    final tagger = Audiotagger();
+    final Uint8List? artwork = await tagger.readArtwork(path: audioFilePath);
+    return artwork;
   }
 
   @override
@@ -129,7 +143,7 @@ class _MusicPageState extends State<MusicPage> {
               type: FileType.custom,
               withData: true);
           if (result != null) {
-            print("The file location is at: ${result.files.first.path}");
+            log("The file location is at: ${result.files.first.path}");
             // Get the file name (replace all spaces with '_')
             String songName = (result.files.single.path)!.split('/').last;
             String cleanedSongName = songName.replaceFirst(RegExp(r'.mp3'), '');
@@ -137,11 +151,13 @@ class _MusicPageState extends State<MusicPage> {
                 "http://$serverIp:8080/file_picker/${songName.replaceAll(RegExp(r'\s'), '%20')}";
             String artist =
                 await getArtistTag(result.files.single.path as String);
+            Uint8List? artwork =
+                await getArtwork(result.files.single.path as String);
             audioFiles.add(AudioItem(result.files.single.path as String,
-                fileURL, songName, cleanedSongName, artist));
+                fileURL, songName, cleanedSongName, artist, artwork));
           } else {
             // User canceled the picker
-            print("User cancelled selecting a file...");
+            log("User cancelled selecting a file...");
           }
           setState(() {});
         },
@@ -175,80 +191,49 @@ class _MusicPageState extends State<MusicPage> {
       child: Material(
         color: Theme.of(context).primaryColor,
         borderRadius: BorderRadius.circular(32),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Container(
-                      child: Icon(
-                    Icons.music_note_rounded,
-                    color: Theme.of(context).unselectedWidgetColor,
-                    size: 32,
-                  )),
+        child: ListTile(
+          horizontalTitleGap: 4,
+          leading: audio.artwork != null
+              ? CircleAvatar(
+                  backgroundImage: MemoryImage(audio.artwork as Uint8List),
+                  radius: getadaptiveTextSize(context, 18),
+                )
+              : Icon(
+                  Icons.music_note_rounded,
+                  color: Theme.of(context).unselectedWidgetColor,
+                  size: 32,
                 ),
-                Container(
-                  margin: const EdgeInsets.only(right: 32, left: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 8),
-                        child: Text(
-                          audio.cleanedSongName.length > 16
-                              ? "${audio.cleanedSongName.substring(0, 18)}..."
-                              : audio.cleanedSongName,
-                          // maxLines: 2,
-                          // overflow: TextOverflow.fade,
-                          style: TextStyle(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: getadaptiveTextSize(context, 18)),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          // audio.artist.substring(0, 16),
-                          audio.artist,
-                          // audio.artist.length > 16
-                          //     ? "${audio.artist.substring(0, 18)}..."
-                          //     : audio.artist,
-                          // audio.artist.length > 32
-                          //     ? audio.artist.substring(0, 32)
-                          //     : audio.artist,
-                          // maxLines: 2,
-                          style: TextStyle(
-                              color: Theme.of(context).unselectedWidgetColor),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: MaterialButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50)),
-                color: const Color.fromARGB(255, 243, 243, 243),
-                onPressed: () async {
-                  if (MQTTPublic.isConnected) {
-                    print("Song is found on this url: ${audio.fileURL}");
-                    MQTTPublic.publish(
-                        "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
-                        audio.fileURL);
-                  }
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text("Play"),
-              ),
-            ),
-          ],
+          title: Text(
+            audio.cleanedSongName,
+            style: TextStyle(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                fontWeight: FontWeight.bold,
+                fontSize: getadaptiveTextSize(context, 16)),
+          ),
+          subtitle: Text(
+            audio.artist,
+            style: TextStyle(
+                color: Theme.of(context).unselectedWidgetColor,
+                fontSize: getadaptiveTextSize(context, 12)),
+          ),
+          dense: true,
+          // trailing: ,
+          trailing: MaterialButton(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+            // color: const Color.fromARGB(255, 243, 243, 243),
+            color: Theme.of(context).unselectedWidgetColor,
+            onPressed: () async {
+              if (MQTTPublic.isConnected) {
+                log("Song is found on this url: ${audio.fileURL}");
+                MQTTPublic.publish(
+                    "${UserInfo.productId}/${UserInfo.devicePassword}/audio",
+                    audio.fileURL);
+              }
+              Navigator.of(context).pop(true);
+            },
+            child: const Text("Play"),
+          ),
         ),
       ),
     );
