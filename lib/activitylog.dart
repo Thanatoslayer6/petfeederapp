@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     History.listOfLogs = []; // Reset necessary variables just in case
     // History.didUserUpdate = false;
     getLogsFromDatabase().then((_) {
-      log("Got logs from the database, updating state now...");
+      log("Getting logs from the database, updating the state now...");
       setState(() {});
     });
     // }
@@ -42,11 +43,13 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
       // Check if sharedPreferences doesn't have the database id... just save it
       if (UserInfo.generalHistoryDatabaseId == null) {
         log("History database id is not saved, trying to save now...");
+        UserInfo.generalHistoryDatabaseId = jsonParsedData['_id'];
         UserInfo.preferences.setString(
             'generalHistoryDatabaseId', History.generalHistoryDatabaseId);
       }
-
-      log(jsonParsedData);
+      // ignore: avoid_print
+      print(jsonParsedData);
+      // log(jsonParsedData);
       if (jsonParsedData.containsKey('items')) {
         // There is stored data...
         for (int i = 0; i < jsonParsedData['items'].length; i++) {
@@ -86,14 +89,102 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          History.listOfLogs.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.delete_sweep_rounded,
+                      color: Theme.of(context).primaryColor),
+                  onPressed: () {
+                    showGeneralDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      pageBuilder: (context, a1, a2) {
+                        return Container();
+                      },
+                      transitionBuilder: (ctx, a1, a2, child) {
+                        var curve = Curves.easeInOut.transform(a1.value);
+                        return Transform.scale(
+                          scale: curve,
+                          child: AlertDialog(
+                            backgroundColor:
+                                Theme.of(context).scaffoldBackgroundColor,
+                            title: const Text("Clear all activity logs?"),
+                            actions: [
+                              TextButton(
+                                child: Text("Cancel",
+                                    style: TextStyle(
+                                        color: Theme.of(context).primaryColor)),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              TextButton(
+                                child: Text("Yes",
+                                    style: TextStyle(
+                                        color: Theme.of(context).primaryColor)),
+                                onPressed: () async {
+                                  if (UserInfo.generalHistoryDatabaseId ==
+                                      null) {
+                                    log("There is no database id stored... will not allow user to clear logs");
+                                  }
+                                  String requestURL =
+                                      "${dotenv.env['CRUD_API']!}/api/logs/${UserInfo.generalHistoryDatabaseId}";
+                                  String jsonBody = json.encode({
+                                    'client': UserInfo.productId,
+                                    'items': [],
+                                  });
+                                  log(requestURL);
+
+                                  final response =
+                                      await http.put(Uri.parse(requestURL),
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: jsonBody);
+
+                                  if (response.statusCode == 200) {
+                                    log("Successfully deleted all logs");
+
+                                    setState(() {
+                                      History.listOfLogs.clear();
+                                    });
+                                  } else {
+                                    log("Failed to delete all logs");
+                                    setState(() {});
+                                  }
+                                  // ignore: use_build_context_synchronously
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      transitionDuration: const Duration(milliseconds: 500),
+                    ).then((_) => setState(() {}));
+                  },
+                )
+              : Container()
+        ],
       ),
-      body: ListView.builder(
-        itemCount: History.listOfLogs.length,
-        itemBuilder: (context, index) {
-          int reversedIndex = History.listOfLogs.length - 1 - index;
-          return logItem(reversedIndex);
-        },
-      ),
+      body: History.listOfLogs.isNotEmpty
+          ? ListView.builder(
+              itemCount: History.listOfLogs.length,
+              itemBuilder: (context, index) {
+                int reversedIndex = History.listOfLogs.length - 1 - index;
+                return logItem(reversedIndex);
+              },
+            )
+          : Align(
+              child: Text(
+                "No activity logs found...",
+                style: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    fontSize: getadaptiveTextSize(context, 18),
+                    fontStyle: FontStyle.italic,
+                    color: Theme.of(context).primaryColor),
+              ),
+            ),
     );
   }
 

@@ -54,13 +54,6 @@ Future main() async {
   }
 
   runApp(const MyApp());
-
-  // runApp(
-  //   ChangeNotifierProvider(
-  //     create: (context) => ThemeProvider(),
-  //     child: const MyApp(),
-  //   )
-  // );
 }
 
 class MyApp extends StatefulWidget {

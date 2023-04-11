@@ -27,7 +27,6 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> {
   // Set up schedule controller
   MultiSelectController scheduleController = MultiSelectController();
-  // bool newUserWithNoSchedules = false;
 
   @override
   void dispose() {
@@ -86,6 +85,10 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   getScheduleFromDatabase() async {
+    // if (UserInfo.generalScheduleDatabaseId == null) {
+    //   log("Schedule database id is null, cannot connect to database");
+    //   return;
+    // }
     // Get entire schedule
     final String requestURL =
         "${dotenv.env['CRUD_API']!}/api/schedule/client/${UserInfo.productId}";
@@ -95,7 +98,7 @@ class _SchedulePageState extends State<SchedulePage> {
       // If client exists in the database, set up the variables
       var jsonResponse =
           convert.jsonDecode(response.body) as Map<String, dynamic>;
-      log(jsonResponse as String);
+      // log(jsonResponse as String);
 
       if (jsonResponse['data'].length > 0) {
         var jsonParsedData = jsonResponse['data'][0];
@@ -105,7 +108,7 @@ class _SchedulePageState extends State<SchedulePage> {
           UserInfo.preferences.setString('generalScheduleDatabaseId',
               UserInfo.generalScheduleDatabaseId as String);
         }
-        log(jsonParsedData);
+        // log(jsonParsedData);
         if (jsonParsedData.containsKey('items')) {
           // There is stored data...
           for (int i = 0; i < jsonParsedData['items'].length; i++) {
@@ -122,9 +125,8 @@ class _SchedulePageState extends State<SchedulePage> {
         // log(Schedule.listOfTimes.toList());
         // log(Schedule.listOfTimes.length);
       } else {
-        // New user
-        log("User doesn't have stored items in database... will add on next add");
-        // newUserWithNoSchedules = true;
+        // New user or the user skipped log in...
+        log("User doesn't have stored items in database... will add if user tries to add schedule");
       }
     } else {
       return "Request failed with status: ${response.statusCode}";
@@ -357,10 +359,10 @@ class _SchedulePageState extends State<SchedulePage> {
                   padding: const EdgeInsets.all(8),
                   // START OF CONTAINER CHILDREN (LISTTILE)
                   child: ListTile(
-                    title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        // CHILDREN OF LISTTILE
-                        children: [
+                    title:
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            // CHILDREN OF LISTTILE
+                            children: [
                           // ignore: avoid_unnecessary_containers
                           Container(
                             child: Column(
@@ -480,8 +482,8 @@ class _SchedulePageState extends State<SchedulePage> {
                             ],
                           ),
                         ]
-                        // END OF CHILDREN OF LISTTLE
-                        ),
+                            // END OF CHILDREN OF LISTTLE
+                            ),
                   ),
                 ),
                 // END FIRST CONTAINER

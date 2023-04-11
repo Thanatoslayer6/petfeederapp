@@ -312,13 +312,6 @@ class _HomepageState extends State<Homepage> {
                     setState(() {});
                   }
                 : () {
-                    // showDialog(
-                    //     context: context,
-                    //     barrierDismissible: false,
-                    //     builder: (context) => EnableUVLightDialog()).then(
-                    //   (_) => setState(() {}),
-                    // );
-
                     showGeneralDialog(
                       context: context,
                       barrierDismissible: false,
